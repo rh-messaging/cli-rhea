@@ -16,9 +16,8 @@
 
 'use strict';
 
-var container = require('rhea');
-var Utils = require("./utils.js");
-var Options = require("./optionsParser.js").ConnectorOptions;
+var Utils = require('./utils.js');
+var Options = require('./optionsParser.js').ConnectorOptions;
 var CoreClient = require('./coreClient.js').CoreClient;
 var options = new Options();
 options.ParseArguments();
@@ -36,38 +35,38 @@ var results = {
 };
 
 //class connector
-var Connector = function(){
+var Connector = function() {
     this.containers = [];
     this.connections = [];
     this.sessions = [];
     this.senders = [];
     this.receivers = [];
-    this.address = options.address ? options.address : "jms.queue.test_connection"
-}
+    this.address = options.address ? options.address : 'jms.queue.test_connection';
+};
 
 //close all connections, sessions, senders, receivers
-Connector.CloseObjects = function(connector){
-    for (var i = 0; i < options.count; i++){
-        if(options.objCtrl.indexOf("R") > -1)
+Connector.CloseObjects = function(connector) {
+    for (var i = 0; i < options.count; i++) {
+        if(options.objCtrl.indexOf('R') > -1)
             connector.receivers[i] && connector.receivers[i].detach();
-        if(options.objCtrl.indexOf("S") > -1)
+        if(options.objCtrl.indexOf('S') > -1)
             connector.senders[i] && connector.senders[i].detach();
-        if(options.objCtrl.indexOf("CE") > -1)
+        if(options.objCtrl.indexOf('CE') > -1)
             connector.sessions[i] && connector.sessions[i].close();
-        if(options.objCtrl.indexOf("C") > -1)
+        if(options.objCtrl.indexOf('C') > -1)
             connector.connections[i] && connector.connections[i].close();
     }
-}
+};
 
-Connector.PrintOutput = function(){
+Connector.PrintOutput = function() {
     console.log(JSON.stringify(results));
-}
+};
 
 //public run method
-Connector.prototype.Run = function(){
+Connector.prototype.Run = function() {
 
     //create connections and open
-    for(var i = 0; i < options.count; i++){
+    for(var i = 0; i < options.count; i++) {
         try{
             this.containers[i] = container.create_container();
 
@@ -100,37 +99,37 @@ Connector.prototype.Run = function(){
             });
 
             this.connections[i] = this.containers[i].connect(CoreClient.BuildConnectionOptionsDict(options));
-        }catch(err){
+        }catch(err) {
             results.connections.error += 1;
         }
     }
 
     //check and create sessions receivers senders
-    if(options.objCtrl && options.objCtrl.indexOf("ESR") > -1){
+    if(options.objCtrl && options.objCtrl.indexOf('ESR') > -1) {
         //create and open sessions
-        for(var i = 0; i < options.count; i++){
+        for(var i = 0; i < options.count; i++) {
             try{
                 this.sessions[i] = this.connections[i].create_session();
                 this.sessions[i].begin();
                 results.sessions.open += 1;
-            }catch(err){
+            }catch(err) {
                 results.sessions.error += 1;
             }
 
             //create sender
-            if(options.objCtrl && options.objCtrl.indexOf("S") > -1){
+            if(options.objCtrl && options.objCtrl.indexOf('S') > -1) {
                 try{
                     this.senders[i] = this.sessions[i].attach_sender(this.address);
-                }catch(err){
+                }catch(err) {
                     results.senders.error += 1;
                 }
             }
 
             //create receiver
-            if(options.objCtrl && options.objCtrl.indexOf("R") > -1){
+            if(options.objCtrl && options.objCtrl.indexOf('R') > -1) {
                 try{
                     this.receivers[i] = this.sessions[i].attach_receiver(this.address);
-                }catch(err){
+                }catch(err) {
                     results.receivers.error += 1;
                 }
             }
@@ -138,12 +137,12 @@ Connector.prototype.Run = function(){
     }
 
     //set timeout for end connections
-    setTimeout(function(connector){
-       Connector.CloseObjects(connector);
-       Connector.PrintOutput();
+    setTimeout(function(connector) {
+        Connector.CloseObjects(connector);
+        Connector.PrintOutput();
     }, options.timeout,
     this);
-}
+};
 
 //////////////////////////////////////////////////////////////////////////////////
-exports.Connector = Connector
+exports.Connector = Connector;

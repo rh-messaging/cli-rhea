@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict'
+'use strict';
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //connection options
@@ -33,7 +33,7 @@ var ConnectionOptions = function () {
     this.sslVerifyPeerName;
     this.arrHosts = [];
     this.arrPorts = [];
-}
+};
 
 ConnectionOptions.prototype.ParseConnectionOptions = function() {
     var args = require('yargs')
@@ -47,7 +47,7 @@ ConnectionOptions.prototype.ParseConnectionOptions = function() {
             'conn-heartbeat':               { deafult: 0, describe: 'heartbeat in second', type: 'uint'},
             'conn-ssl-certificate':         { describe: 'path to client certificate (PEM format), enables client authentication', type: 'string'},
             'conn-ssl-private-key':         { describe: 'path to client private key (PEM format), conn-ssl-certificate must be given', type: 'string'},
-            'conn-ssl-password':            { describe: "client's certificate database password", type: 'string' },
+            'conn-ssl-password':            { describe: 'client\'s certificate database password', type: 'string' },
             'conn-ssl-trust-store':         { describe: 'path to client trust store (PEM format), conn-ssl-certificate must be given', type: 'string' },
             'conn-ssl-verify-peer':         { default: false, describe: 'verifies server certificate, conn-ssl-certificate and trusted db path needs to be specified (PEM format)', type: 'boolean'},
             'conn-ssl-verify-peer-name':    { default: false, describe: 'verifies connection url against server hostname', type: 'boolean'},
@@ -58,10 +58,10 @@ ConnectionOptions.prototype.ParseConnectionOptions = function() {
         .argv;
 
     this.connUrls = args['conn-urls'];
-    if (typeof args['conn-reconnect'] == 'boolean'){
+    if (typeof args['conn-reconnect'] === 'boolean') {
         this.reconnect = args['conn-reconnect'];
     }else{
-        this.reconnect = args['conn-reconnect'].toUpperCase() == 'TRUE' ? true : false;
+        this.reconnect = args['conn-reconnect'].toUpperCase() === 'TRUE';
     }
     this.reconnectInterval = args['conn-reconnect-interval'];
     this.reconnectLimit = args['conn-reconnect-limit'];
@@ -74,7 +74,7 @@ ConnectionOptions.prototype.ParseConnectionOptions = function() {
     this.sslVerifyPeer = args['conn-ssl-verify-peer'];
     this.sslVerifyPeerName = args['conn-ssl-verify-peer-name'];
     this.frameSize = args['conn-max-frame-size'];
-}
+};
 
 
 //class for parse and store basic arguments for clients
@@ -98,13 +98,13 @@ BasicOptions.prototype.ParseBasic = function() {
     var args = require('yargs')
         .usage('$0 [args]')
         .options({
-            'broker':               { alias: 'b', default: "localhost:5672", describe: 'address of machine with broker (i.e. admin:admin@broker-address:5672)'},
+            'broker':               { alias: 'b', default: 'localhost:5672', describe: 'address of machine with broker (i.e. admin:admin@broker-address:5672)'},
             'address':              { alias: 'a', describe: 'address of queue'},
             'count':                { alias: 'c', default: 1, describe: 'count of messages', type: 'uint'},
             'close-sleep':          { default: 0, describe: 'sleep before sender/receiver/session/connection.close()', type: 'uint'},
             'timeout':              { alias: 't', default: 0, describe: 'timeout berofe exiting'},
             'log-lib':              { describe: 'enable client library logging', choices: ['TRANSPORT_RAW', 'TRANSPORT_FRM', 'TRANSPORT_DRV']},
-            'log-stats':            { describe: "report various statistic/debug information", choices: ['endpoints']},
+            'log-stats':            { describe: 'report various statistic/debug information', choices: ['endpoints']},
 
             'link-durable':         { default: false, describe: 'durable link subscription', type: 'boolean'},
         })
@@ -132,7 +132,7 @@ BasicOptions.prototype.ParseBasic = function() {
         this.port = splitAdd[1].split(':').pop();
     }else{
         var splitAdd = add.split('@');
-        if(splitAdd.length > 1){
+        if(splitAdd.length > 1) {
             this.url = res ? res : splitAdd[1].split(':')[0];
             this.port = (splitAdd[1].split(':').length > 1) ? splitAdd[1].split(':').pop() : 5672;
         }else{
@@ -167,38 +167,38 @@ SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function() {
     this.linkAtLeastOnce = args['link-at-least-once'];
     this.logMsgs = args['log-msgs'];
     this.duration = args['duration'] * 1000;
-}
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var ConnectorOptions = function () {
     //conector options
     this.objCtrl;
-}
+};
 
 ConnectorOptions.prototype = Object.create(BasicOptions.prototype);
 ConnectorOptions.prototype.ParseArguments = function() {
     var args = require('yargs')
         .usage('$0 [args]')
         .options({
-            'obj-ctrl': { default: "C", describe: 'Optional creation object control based on <object-ids>, syntax C/E/S/R stands for Connection, sEssion, Sender, Receiver'},
+            'obj-ctrl': { default: 'C', describe: 'Optional creation object control based on <object-ids>, syntax C/E/S/R stands for Connection, sEssion, Sender, Receiver'},
         })
         .argv;
     this.ParseBasic();
 
     this.objCtrl = args['obj-ctrl'];
-}
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var ReceiverOptions = function () {
     //receiver options
     this.msgSelector;
     this.recvBrowse = false;
-    this.action
+    this.action;
     this.capacity;
     this.processReplyTo;
     this.recvListen;
     this.recvListenPort;
-}
+};
 
 ReceiverOptions.prototype = Object.create(SenderReceiverOptions.prototype);
 ReceiverOptions.prototype.ParseArguments = function() {
@@ -221,10 +221,10 @@ ReceiverOptions.prototype.ParseArguments = function() {
     this.action = args['action'];
     this.capacity = args['capacity'];
     this.processReplyTo = args['process-reply-to'];
-    if (typeof args['recv-listen'] == 'boolean'){
+    if (typeof args['recv-listen'] === 'boolean') {
         this.recvListen = args['recv-listen'];
     }else{
-        this.recvListen = args['recv-listen'].toUpperCase() == 'TRUE' ? true : false;
+        this.recvListen = args['recv-listen'].toUpperCase() === 'TRUE';
     }
     this.recvListenPort = args['recv-listen-port'];
 }
@@ -258,38 +258,38 @@ var SenderOptions = function () {
     this.messageAnnotations={};
 
     this.ParseDataType = function (data) {
-        if(data == undefined){
+        if(data === undefined) {
             return data;
         }
         data = data.toString();
         //autocast
-        if(data.charAt(0) == '~'){
+        if(data.charAt(0) === '~') {
             data = data.substr(1);
 
-            if(data.toLowerCase() == 'false'){
+            if(data.toLowerCase() === 'false') {
                 return false;
-            }else if (data.toLowerCase() == 'true'){
+            }else if (data.toLowerCase() === 'true') {
                 return true;
             }else{
-                data = Number(data) || Number(data) == 0 ? Number(data) : data;
+                data = Number(data) || Number(data) === 0 ? Number(data) : data;
                 return data;
             }
         }
         //return string
         return data;
-    }
+    };
 
     this.ParseMapItem = function (data) {
         var listData = data.split('=');
-        if(listData.length == 1){
+        if(listData.length === 1) {
             listData = data.split('~');
             listData[1] = this.ParseDataType('~' + listData[1].toString());
-        }else if (listData.length == 2){
+        }else if (listData.length === 2) {
             listData[1] = this.ParseDataType(listData[1]);
         }
         return listData;
-    }
-}
+    };
+};
 
 SenderOptions.prototype = Object.create(SenderReceiverOptions.prototype);
 SenderOptions.prototype.ParseArguments = function() {
@@ -342,55 +342,55 @@ SenderOptions.prototype.ParseArguments = function() {
     this.autoSettleOff = args['reactor-auto-settle-off'];
     this.anonymous = args['anonymous'];
 
-    if(args['msg-content-from-file']){
-        var ReadContentFromFile = require("./utils.js").ReadContentFromFile;
+    if(args['msg-content-from-file']) {
+        var ReadContentFromFile = require('./utils.js').ReadContentFromFile;
         this.msgContentFromFile = ReadContentFromFile(args['msg-content-from-file']);
     }
 
     this.contentType = args['content-type'];
     this.capacity = args['capacity'];
 
-    if((typeof args['msg-property']) == 'object'){
-        for(var i = 0; i < args['msg-property'].length; i++){
+    if((typeof args['msg-property']) === 'object') {
+        for(var i = 0; i < args['msg-property'].length; i++) {
             var pair = this.ParseMapItem(args['msg-property'][i]);
             this.application_properties[pair[0]] = pair[1];
         }
-    }else if ((typeof args['msg-property']) == 'string'){
+    }else if ((typeof args['msg-property']) === 'string') {
         var pair = this.ParseMapItem(args['msg-property']);
         this.application_properties[pair[0]] = pair[1];
     }
 
-    if((typeof args['msg-content-list-item']) == 'object'){
-        for(var i = 0; i < args['msg-content-list-item'].length; i++){
+    if((typeof args['msg-content-list-item']) === 'object'){
+        for(var i = 0; i < args['msg-content-list-item'].length; i++) {
             this.listContent[i] = this.ParseDataType(args['msg-content-list-item'][i]);
         }
-    }else if ((typeof args['msg-content-list-item']) == 'string'){
+    }else if ((typeof args['msg-content-list-item']) === 'string') {
         this.listContent[0] = this.ParseDataType(args['msg-content-list-item']);
     }
 
-    if((typeof args['msg-content-map-item']) == 'object'){
-        for(var i = 0; i < args['msg-content-map-item'].length; i++){
+    if((typeof args['msg-content-map-item']) === 'object') {
+        for(var i = 0; i < args['msg-content-map-item'].length; i++) {
             var pair = this.ParseMapItem(args['msg-content-map-item'][i]);
             this.mapContent[pair[0]] = pair[1];
         }
-    }else if ((typeof args['msg-content-map-item']) == 'string'){
+    }else if ((typeof args['msg-content-map-item']) == 'string') {
         var pair = this.ParseMapItem(args['msg-content-map-item']);
         this.mapContent[pair[0]] = pair[1];
     }
 
-    if((typeof args['msg-annotation']) == 'object'){
-        for(var i = 0; i < args['msg-annotation'].length; i++){
+    if((typeof args['msg-annotation']) === 'object') {
+        for(var i = 0; i < args['msg-annotation'].length; i++) {
             var pair = this.ParseMapItem(args['msg-annotation'][i]);
             this.messageAnnotations[pair[0]] = pair[1];
         }
-    }else if ((typeof args['msg-annotation']) == 'string'){
+    }else if ((typeof args['msg-annotation']) === 'string') {
         var pair = this.ParseMapItem(args['msg-annotation']);
         this.messageAnnotations[pair[0]] = pair[1];
     }
-}
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //export classes
-exports.ReceiverOptions = ReceiverOptions
-exports.SenderOptions = SenderOptions
-exports.ConnectorOptions = ConnectorOptions
+exports.ReceiverOptions = ReceiverOptions;
+exports.SenderOptions = SenderOptions;
+exports.ConnectorOptions = ConnectorOptions;

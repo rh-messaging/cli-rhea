@@ -16,95 +16,93 @@
 
 'use strict';
 var formatter = require('./formatter.js');
+var fs = require('fs');
 
 //enum with return codes
 var ReturnCodes = {
-  OK: 0,
-  Error: 1,
-  Error_ARGS: 2,
-  properties: {
-    0: {description: "results is ok"},
-    1: {description: "result isn't ok"},
-    2: {description: "wrong parsed arguments"}
-  }
+    OK: 0,
+    Error: 1,
+    Error_ARGS: 2,
+    properties: {
+        0: {description: 'results is ok'},
+        1: {description: 'result isn\'t ok'},
+        2: {description: 'wrong parsed arguments'}
+    }
 };
 
 //formating and printing message
-var PrintMessage = function (message, format){
-    if(format == 'body'){
+var PrintMessage = function (message, format) {
+    if(format === 'body') {
         console.log(formatter.FormatBody(message));
-    }else if (format == 'dict'){
+    }else if (format === 'dict') {
         console.log(formatter.FormatAsDict(message));
-    }else if (format == 'upstream'){
+    }else if (format === 'upstream') {
         console.log(formatter.FormatAsUpstream(message));
-    }else if (format == 'interop'){
+    }else if (format === 'interop') {
         console.log(formatter.FormatAsInteropDict(message));
     }
-}
+};
 
 //reading content from file
 var ReadContentFromFile = function (path) {
     try{
-        var fs = require('fs')
         var data = fs.readFileSync(path, 'utf8');
         return data;
-    }catch(err){
+    }catch(err) {
         PrintError(err);
         process.exit(ReturnCodes.Error);
     }
-}
+};
 
 //function return current time in seconds
 var GetTime = function (){
     return (0.001 * new Date().getTime());
-}
+};
 
 //custom sleep operation
 var Sleep4Next = function (initTimeStamp, count, duration, nextIterIndex) {
-    if((duration > 0) && (count > 0)){
+    if((duration > 0) && (count > 0)) {
         var cumulative = (1.0 * nextIterIndex * duration) / count;
-        while(true){
-            if(GetTime() - initTimeStamp - cumulative > -0.1){
+        while(true) {
+            if(GetTime() - initTimeStamp - cumulative > -0.1) {
                 break;
             }
         }
     }
-}
+};
 
 var CalculateDelay = function(count, duration) {
-    if((duration > 0) && (count > 0)){
-        return 1.0 * duration / count
+    if((duration > 0) && (count > 0)) {
+        return 1.0 * duration / count;
     }
-}
+};
 
 var SetUpClientLogging = function (logLevel) {
-    if (!logLevel){
+    if (!logLevel) {
         return;
     }
 
-    if (logLevel.toUpperCase() == 'TRANSPORT_DRV'){
+    if (logLevel.toUpperCase() === 'TRANSPORT_DRV') {
         // proton: Log driver related events, e.g. initialization, end of stream, etc.
-        process.env["DEBUG"] = 'rhea:events';
-    }
-    else if (logLevel.toUpperCase() == 'TRANSPORT_FRM'){
+        process.env['DEBUG'] = 'rhea:events';
+    } else if (logLevel.toUpperCase() === 'TRANSPORT_FRM') {
         // proton: Log frames into/out of the transport.
-        process.env["DEBUG"] = 'rhea:frames';
-    }
-    else if (logLevel.toUpperCase() == 'TRANSPORT_RAW'){
+        process.env['DEBUG'] = 'rhea:frames';
+    } else if (logLevel.toUpperCase() === 'TRANSPORT_RAW') {
         // proton: Log raw binary data into/out of the transport.
-        process.env["DEBUG"] = 'rhea:raw';
+        process.env['DEBUG'] = 'rhea:raw';
     }
-}
+};
 
 var PrintError = function (errMsg) {
     console.error(formatter.FormatError(errMsg));
-}
+};
 
 var PrintStatistic = function (context) {
     console.log(formatter.FormatStats(StringifyStatObject(context)));
-}
+};
 
-var StringifyStatObject = function(statistics){
+var StringifyStatObject = function(statistics) {
     var cache = [];
     var str = JSON.stringify(statistics,
         //filter
@@ -117,22 +115,22 @@ var StringifyStatObject = function(statistics){
                 // Store value in collection
                 cache.push(value);
             }
-            if ( key.toString().charAt(0) == '_'){
+            if ( key.toString().charAt(0) === '_') {
                 return;
             }
             return value;
         });
     cache = null;
     return str;
-}
+};
 
 /////////////////////////////////////////////////////////////////
-exports.ReturnCodes = ReturnCodes
-exports.PrintMessage = PrintMessage
-exports.ReadContentFromFile = ReadContentFromFile
-exports.Sleep4Next = Sleep4Next
-exports.CalculateDelay = CalculateDelay
-exports.GetTime = GetTime
-exports.SetUpClientLogging = SetUpClientLogging
-exports.PrintError = PrintError
-exports.PrintStatistic = PrintStatistic
+exports.ReturnCodes = ReturnCodes;
+exports.PrintMessage = PrintMessage;
+exports.ReadContentFromFile = ReadContentFromFile;
+exports.Sleep4Next = Sleep4Next;
+exports.CalculateDelay = CalculateDelay;
+exports.GetTime = GetTime;
+exports.SetUpClientLogging = SetUpClientLogging;
+exports.PrintError = PrintError;
+exports.PrintStatistic = PrintStatistic;

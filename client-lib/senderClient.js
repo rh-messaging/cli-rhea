@@ -16,9 +16,9 @@
 
 'use strict';
 
-var Utils = require("./utils.js");
+var Utils = require('./utils.js');
 var CoreClient = require('./coreClient.js').CoreClient;
-var Options = require("./optionsParser.js").SenderOptions;
+var Options = require('./optionsParser.js').SenderOptions;
 var options = new Options();
 options.ParseArguments();
 CoreClient.RegistryUnhandledError();
@@ -63,8 +63,8 @@ var createMessage = function(options, sentId) {
         //body
         if (options.msgContent) {
             message.body = options.msgContent;
-            if (typeof options.msgContent == "string")
-                message.body = options.msgContent.replace("%d", sentId);
+            if (typeof options.msgContent === 'string')
+                message.body = options.msgContent.replace('%d', sentId);
         }
         if (options.listContent.length > 0) {
             message.body = options.listContent;
@@ -81,7 +81,7 @@ var createMessage = function(options, sentId) {
         Utils.PrintError(err);
         process.exit(Utils.ReturnCodes.Error);
     }
-}
+};
 
 //class sender
 var Sender = function() {
@@ -107,12 +107,12 @@ var Sender = function() {
 
                 Utils.PrintMessage(message, options.logMsgs);
 
-                if (options.logStats == 'endpoints') {
+                if (options.logStats === 'endpoints') {
                     Utils.PrintStatistic(context);
                 }
             }
         }
-    }
+    };
 
     //scheduled sending messages
     var NextRequest = function(context) {
@@ -127,7 +127,7 @@ var Sender = function() {
 
         Utils.PrintMessage(message, options.logMsgs);
 
-        if (options.logStats == 'endpoints') {
+        if (options.logStats === 'endpoints') {
             Utils.PrintStatistic(context);
         }
 
@@ -137,7 +137,7 @@ var Sender = function() {
         } else {
             clearTimeout(timer_task);
         }
-    }
+    };
 
     //send messages
     this.on('sendable', function(context) {
@@ -146,7 +146,7 @@ var Sender = function() {
 
     //on accept message
     this.on('accepted', function(context) {
-        if (++confirmed == options.count && !options.autoSettleOff) {
+        if (++confirmed === options.count && !options.autoSettleOff) {
             CoreClient.CancelTimeout();
             clearTimeout(timer_task);
             CoreClient.Close(context, options.closeSleep, false);
@@ -188,7 +188,7 @@ var Sender = function() {
 
     //on settled
     this.on('settled', function(context) {
-        if (confirmed == options.count && options.autoSettleOff) {
+        if (confirmed === options.count && options.autoSettleOff) {
             CoreClient.CancelTimeout();
             clearTimeout(timer_task);
             CoreClient.Close(context, options.closeSleep, false);
@@ -215,8 +215,8 @@ var Sender = function() {
             Utils.PrintError(err);
             process.exit(Utils.ReturnCodes.Error);
         }
-    }
-}
+    };
+};
 Sender.prototype = Object.create(container);
 ///////////////////////////////////////////////////////////////////////////////////
-exports.Sender = Sender
+exports.Sender = Sender;

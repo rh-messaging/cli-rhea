@@ -16,9 +16,9 @@
 
 'use strict';
 
-var Utils = require("./utils.js");
+var Utils = require('./utils.js');
 var CoreClient = require('./coreClient.js').CoreClient;
-var Options = require("./optionsParser.js").ReceiverOptions;
+var Options = require('./optionsParser.js').ReceiverOptions;
 var options = new Options();
 options.ParseArguments();
 CoreClient.RegistryUnhandledError();
@@ -33,7 +33,7 @@ var Receiver = function () {
     var replyToSent = 0;
     var expected = options.count;
     var defaultCredit = expected ? expected : 10;
-    var batch = (options.recvBrowse || options.count == 0) ? defaultCredit : options.capacity;
+    var batch = (options.recvBrowse || options.count === 0) ? defaultCredit : options.capacity;
     var ts;
 
     //handler function for on message
@@ -44,7 +44,7 @@ var Receiver = function () {
         Utils.PrintMessage(context.message, options.logMsgs);
 
         //log stats
-        if (options.logStats == 'endpoints'){
+        if (options.logStats === 'endpoints') {
             Utils.PrintStatistic(context);
         }
 
@@ -52,9 +52,9 @@ var Receiver = function () {
         CoreClient.ResetTimeout(context, options.recvListen);
 
         //react action on message
-        if(options.action == 'reject'){
+        if(options.action === 'reject') {
             context.delivery.reject({condition:'rhea:oops:string',description:'reject message'});
-        }else if (options.action == 'release'){
+        }else if (options.action === 'release') {
             context.delivery.release();
         }
 
@@ -65,44 +65,43 @@ var Receiver = function () {
         }
 
         //add credit for drain
-        if ((expected == 0) && (received === batch)) {
+        if ((expected === 0) && (received === batch)) {
             received = 0;
             context.receiver.add_credit(batch);
         }
 
         //reply to
-        if(options.processReplyTo){
+        if(options.processReplyTo) {
             CoreClient.Reply(context);
         }
 
-        if (options.duration > 0)
-        {
+        if (options.duration > 0) {
             Utils.Sleep4Next(ts, options.count, options.duration, received + 1);
         }
     }
 
     //event raised when receiver is opening
     this.on('receiver_open', function(context) {
-        if(options.recvListen && context.receiver.target.address == options.address){
+        if(options.recvListen && context.receiver.target.address === options.address) {
             context.receiver.on('message', onMessageHandler);
-        }else if (!options.recvListen && CoreClient.reconnectCount == 0){
+        }else if (!options.recvListen && CoreClient.reconnectCount === 0) {
             context.receiver.on('message', onMessageHandler);
         }
-        if(options.recvBrowse || options.count == 0){
+        if(options.recvBrowse || options.count === 0) {
             context.receiver.flow(batch);
             if (options.timeout <= 0)
                 context.receiver.drain = true;
         }
 
         //if timeout is set close connection after timeout
-        if(options.timeout > 0 && !options.recvListen){
+        if(options.timeout > 0 && !options.recvListen) {
             CoreClient.TimeoutClose(context, options.timeout, options.recvListen);
         }
     });
 
     //event raised when receiver has no messages to read from queue or if credit is 0
     this.on('receiver_drained', function(context) {
-        if (!options.processReplyTo && options.timeout <= 0){
+        if (!options.processReplyTo && options.timeout <= 0) {
             CoreClient.CancelTimeout();
             CoreClient.Close(context, options.closeSleep, options.recvListen);
         }
@@ -125,7 +124,7 @@ var Receiver = function () {
 
     //on connection settled
     this.on('settled', function (context) {
-        if (++replyToSent == received && options.processReplyTo){
+        if (++replyToSent === received && options.processReplyTo) {
             CoreClient.CancelTimeout();
             CoreClient.Close(context);
         }
@@ -135,7 +134,7 @@ var Receiver = function () {
     this.Run = function () {
         ts = Utils.GetTime();
         try{
-            if(!options.recvListen){
+            if(!options.recvListen) {
                 //run receiver
                 this.connect(CoreClient.BuildConnectionOptionsDict(options))
                     .open_receiver(CoreClient.BuildReceiverOptionsDict(options));
@@ -146,12 +145,12 @@ var Receiver = function () {
                     CoreClient.TimeoutClose(null, options.timeout, options.recvListen);
                 }
             }
-        }catch(err){
+        }catch(err) {
             Utils.PrintError(err);
             process.exit(Utils.ReturnCodes.Error);
         }
-    }
-}
+    };
+};
 Receiver.prototype = Object.create(container);
 //////////////////////////////////////////////////////////////////////////////////
-exports.Receiver = Receiver
+exports.Receiver = Receiver;

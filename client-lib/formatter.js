@@ -23,26 +23,26 @@ var Replacer = function(k, v) {
         return null;
     }
     return v;
-}
+};
 
-var BinToString = function(binArray){
+var BinToString = function(binArray) {
     return String.fromCharCode.apply(String, binArray);
-}
+};
 
-var CastUserId = function(userID){
-    if(typeof userID == "string"){
+var CastUserId = function(userID) {
+    if(typeof userID === 'string') {
         return userID;
-    }else if (typeof userID == 'object'){
+    }else if (typeof userID === 'object') {
         return BinToString(userID);
     }
     return null;
-}
+};
 
-var RemoveIDPrefix = function(idString){
+var RemoveIDPrefix = function(idString) {
     if (idString)
-        return idString.replace("ID:", "");
+        return idString.replace('ID:', '');
     return idString;
-}
+};
 
 var RenameKeysInDictInterop = function (dict) {
     var workDict = {};
@@ -78,11 +78,11 @@ var RenameKeysInDictInterop = function (dict) {
     //workDict['message-annotations'] = dict['message_annotations'];
 
     //remove native message id
-    if(workDict != null && workDict['properties'] != undefined)
+    if(workDict !== null && workDict['properties'] !== undefined)
         delete workDict['properties']['NATIVE_MESSAGE_ID'];
 
     return workDict;
-}
+};
 
 var RenameKeysInDictStandard = function (dict) {
 
@@ -119,53 +119,53 @@ var RenameKeysInDictStandard = function (dict) {
     workDict['message-annotations'] = dict['message_annotations'];
 
     //remove native message id
-    if(workDict != null && workDict['properties'] != undefined)
+    if(workDict !== null && workDict['properties'] !== undefined)
         delete workDict['properties']['NATIVE_MESSAGE_ID'];
 
     return workDict;
-}
+};
 
 var ReplaceWithPythonType = function (strMessage) {
     return strMessage.replace(/null/g, 'None').replace(/true/g, 'True').replace(/false/g, 'False').replace(/undefined/g, 'None').replace(/\{\}/g, 'None');
-}
+};
 
 /////////////////////////////////////////////////////////////////////
 // Main functions
 var FormatBody = function (message) {
     return ReplaceWithPythonType(JSON.stringify(message.body, Replacer));
-}
+};
 
 var FormatAsDict = function (message) {
     return ReplaceWithPythonType(JSON.stringify(RenameKeysInDictStandard(message), Replacer));
-}
+};
 
 var FormatAsInteropDict = function (message) {
     return ReplaceWithPythonType(JSON.stringify(RenameKeysInDictInterop(message), Replacer));
-}
+};
 
 var FormatAsUpstream = function (message) {
-    var strResult = "";
+    var strResult = '';
     var messageDict = RenameKeysInDictStandard(message);
-    for (var key in messageDict){
-        strResult += key + ": " + JSON.stringify(messageDict[key]) + ", ";
+    for (var key in messageDict) {
+        strResult += key + ': ' + JSON.stringify(messageDict[key]) + ', ';
     }
     strResult = strResult.substring(0, strResult.length-1);
     return ReplaceWithPythonType(strResult);
-}
+};
 
 var FormatError = function (errMsg) {
-    return "ERROR {'cause': '%s'}".replace('%s', errMsg);
-}
+    return 'ERROR {\'cause\': \'%s\'}'.replace('%s', errMsg);
+};
 
-var FormatStats = function (message){
-    return "STATS '%s'".replace('%s', ReplaceWithPythonType(message));
-}
+var FormatStats = function (message) {
+    return 'STATS \'%s\''.replace('%s', ReplaceWithPythonType(message));
+};
 
 /////////////////////////////////////////////////////////////////////
 // Export
-exports.FormatBody = FormatBody
-exports.FormatAsDict = FormatAsDict
-exports.FormatAsInteropDict = FormatAsInteropDict
-exports.FormatAsUpstream = FormatAsUpstream
-exports.FormatError = FormatError
-exports.FormatStats = FormatStats
+exports.FormatBody = FormatBody;
+exports.FormatAsDict = FormatAsDict;
+exports.FormatAsInteropDict = FormatAsInteropDict;
+exports.FormatAsUpstream = FormatAsUpstream;
+exports.FormatError = FormatError;
+exports.FormatStats = FormatStats;
