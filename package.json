@@ -1,0 +1,28 @@
+{
+  "name": "rhea-nodejs-client",
+  "version": "1.0.0",
+  "description": "Client interface built on rhea lib",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/david_kornel/rhea-nodejs-client.git"
+  },
+  "bin": {
+    "rhea-sender-client": "bin/sender-client.js",
+    "rhea-receiver-client": "bin/sender-client.js",
+    "rhea-connector-client": "bin/sender-client.js"
+  },
+  "dependencies": {
+    "yargs": "7.1.0",
+    "rhea": "^0.2.0"
+  },
+  "keywords": [
+    "rhea",
+    "nodjes"
+  ],
+  "author": "David Kornel",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/david_kornel/rhea-nodejs-client#readme"
+}

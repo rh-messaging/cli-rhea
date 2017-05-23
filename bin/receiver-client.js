@@ -17,6 +17,6 @@
 
 'use strict';
 
-var ConnectorClient = require("./connectorClient.js").Connector;
-var connector = new ConnectorClient();
-connector.Run();
+var ReceiverClient = require('./client-lib/receiverClient.js').Receiver;
+var receiver = new ReceiverClient();
+receiver.Run();
