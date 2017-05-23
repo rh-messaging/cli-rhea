@@ -17,6 +17,6 @@
 
 'use strict';
 
-var ReceiverClient = require('./client-lib/receiverClient.js').Receiver;
+var ReceiverClient = require('../client-lib/receiverClient.js').Receiver;
 var receiver = new ReceiverClient();
 receiver.Run();
