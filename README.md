@@ -4,7 +4,7 @@ Rhea client is javascript client built on [RHEA](https://www.npmjs.com/package/r
 
 ### Installation
 
-Dillinger requires [Node.js](https://nodejs.org/) v0.10+ to run.
+rhea-nodejs-client requires [Node.js](https://nodejs.org/) v0.10+ to run.
 
 Install to global env, if you would like use client as cmd program.
 
