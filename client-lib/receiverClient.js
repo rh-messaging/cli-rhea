@@ -131,7 +131,11 @@ var Receiver = function () {
     });
 
     //public run method for receiver
-    this.Run = function () {
+    this.Run = function (opts) {
+        if(opts !== undefined) {
+            options = opts;
+        }
+
         ts = Utils.GetTime();
         try{
             if(!options.recvListen) {
@@ -141,7 +145,7 @@ var Receiver = function () {
             }else{
                 //run local listener
                 this.listen({port: options.recvListenPort});
-                if(options.timeout > 0){
+                if(options.timeout > 0) {
                     CoreClient.TimeoutClose(null, options.timeout, options.recvListen);
                 }
             }

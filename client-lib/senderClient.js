@@ -66,13 +66,13 @@ var createMessage = function(options, sentId) {
             if (typeof options.msgContent === 'string')
                 message.body = options.msgContent.replace('%d', sentId);
         }
-        if (options.listContent.length > 0) {
+        if (options.listContent && options.listContent.length > 0) {
             message.body = options.listContent;
         }
-        if (Object.keys(options.mapContent).length > 0) {
+        if (options.mapContent && Object.keys(options.mapContent).length > 0) {
             message.body = options.mapContent;
         }
-        if (options.msgContentFromFile) {
+        if (options.msgContentFromFile && options.msgContentFromFile) {
             message.body = options.msgContentFromFile;
         }
 
@@ -85,7 +85,6 @@ var createMessage = function(options, sentId) {
 
 //class sender
 var Sender = function() {
-
     var confirmed = 0;
     var sent = 0;
     var ts;
@@ -203,11 +202,14 @@ var Sender = function() {
     });
 
     //public run method execute send
-    this.Run = function() {
+    this.Run = function(opts) {
+        if(opts !== undefined) {
+            options = opts;
+        }
         ts = Utils.GetTime();
         try {
             //run sender client
-            var connection = this.connect(CoreClient.BuildConnectionOptionsDict(options))
+            var connection = this.connect(CoreClient.BuildConnectionOptionsDict(options));
             if (!options.anonymous) {
                 connection.attach_sender(CoreClient.BuildSenderOptionsDict(options));
             }

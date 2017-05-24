@@ -64,7 +64,7 @@ CoreClient.TimeoutClose = function (context, timeout, isListener) {
     }
 };
 
-CoreClient.OnDisconnect = function (context, link) {
+CoreClient.OnDisconnect = function (context) {
     CoreClient.CancelTimeout();
     CoreClient.reconnectCount++;
     if(CoreClient.reconnectCount === context.connection.options.reconnect_limit) {

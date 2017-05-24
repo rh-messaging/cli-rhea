@@ -39,7 +39,7 @@ ConnectionOptions.prototype.ParseConnectionOptions = function() {
     var args = require('yargs')
         .usage('$0 [args]')
         .options({
-            'conn-urls':                    { describe: 'broker adresses and ports for failover conection e.g. ["host1:port", "host2:port"]', type: "string"},
+            'conn-urls':                    { describe: 'broker adresses and ports for failover conection e.g. ["host1:port", "host2:port"]', type: 'string'},
             'conn-reconnect':               { default: true, describe: 'client reconnect settings', type: ['boolean', 'string']},
             'conn-reconnect-interval':      { describe: 'client reconnect interval (only supported with "custom" reconnect")', type: 'float'},
             'conn-reconnect-limit':         { describe: 'client reconnect limit (only supported with "custom" reconnect)', type: 'int'},
@@ -90,7 +90,7 @@ var BasicOptions = function () {
     this.durable;
     this.logLib;
     this.logStats;
-}
+};
 
 BasicOptions.prototype = Object.create(ConnectionOptions.prototype);
 //method for parse basic arguments
@@ -105,7 +105,6 @@ BasicOptions.prototype.ParseBasic = function() {
             'timeout':              { alias: 't', default: 0, describe: 'timeout berofe exiting'},
             'log-lib':              { describe: 'enable client library logging', choices: ['TRANSPORT_RAW', 'TRANSPORT_FRM', 'TRANSPORT_DRV']},
             'log-stats':            { describe: 'report various statistic/debug information', choices: ['endpoints']},
-
             'link-durable':         { default: false, describe: 'durable link subscription', type: 'boolean'},
         })
         .argv;
@@ -124,10 +123,10 @@ BasicOptions.prototype.ParseBasic = function() {
     var regex = /(\w+)(:*)(\w*)@/gi;
     var regexIpv6 = /\[(.*?)\]/gi;
     var res = regexIpv6.test(add) ? add.match(regexIpv6)[0].replace(/\[/, '').replace(/\]/,'') : null;
-    if(regex.test(add)){
+    if(regex.test(add)) {
         var splitAdd = add.split('@');
-        this.username = splitAdd[0].split(':')[0] ? splitAdd[0].split(':')[0] : "";
-        this.password = splitAdd[0].split(':')[1] ? splitAdd[0].split(':')[1] : "";
+        this.username = splitAdd[0].split(':')[0] ? splitAdd[0].split(':')[0] : '';
+        this.password = splitAdd[0].split(':')[1] ? splitAdd[0].split(':')[1] : '';
         this.url = res ? res : splitAdd[1].split(':')[0];
         this.port = splitAdd[1].split(':').pop();
     }else{
@@ -140,7 +139,7 @@ BasicOptions.prototype.ParseBasic = function() {
             this.port = (splitAdd[0].split(':').length > 1) ? splitAdd[0].split(':').pop() : 5672;
         }
     }
-}
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var SenderReceiverOptions = function () {
@@ -148,7 +147,7 @@ var SenderReceiverOptions = function () {
     this.linkAtMostOnce;
     this.linkAtLeastOnce;
     this.logMsgs;
-}
+};
 
 SenderReceiverOptions.prototype = Object.create(BasicOptions.prototype);
 SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function() {
@@ -227,7 +226,7 @@ ReceiverOptions.prototype.ParseArguments = function() {
         this.recvListen = args['recv-listen'].toUpperCase() === 'TRUE';
     }
     this.recvListenPort = args['recv-listen-port'];
-}
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Options class for sender, parse and store options from command line
@@ -309,7 +308,7 @@ SenderOptions.prototype.ParseArguments = function() {
             'msg-priority':             { describe: 'message priority'},
             'msg-correlation-id':       { describe: 'message correlation id'},
             'msg-user-id':              { describe: 'message user id'},
-            'msg-content-type':         { default: "string", describe: 'message content type; values string, int, long, float'},
+            'msg-content-type':         { default: 'string', describe: 'message content type; values string, int, long, float'},
             'msg-content':              { describe: 'specify a content'},
             'msg-content-list-item':    { alias: 'L', describe: 'specify a multiple entries content', type: 'string'},
             'msg-content-map-item':     { alias: 'M', describe: 'specify a map content'},
@@ -360,7 +359,7 @@ SenderOptions.prototype.ParseArguments = function() {
         this.application_properties[pair[0]] = pair[1];
     }
 
-    if((typeof args['msg-content-list-item']) === 'object'){
+    if((typeof args['msg-content-list-item']) === 'object') {
         for(var i = 0; i < args['msg-content-list-item'].length; i++) {
             this.listContent[i] = this.ParseDataType(args['msg-content-list-item'][i]);
         }
@@ -373,7 +372,7 @@ SenderOptions.prototype.ParseArguments = function() {
             var pair = this.ParseMapItem(args['msg-content-map-item'][i]);
             this.mapContent[pair[0]] = pair[1];
         }
-    }else if ((typeof args['msg-content-map-item']) == 'string') {
+    }else if ((typeof args['msg-content-map-item']) === 'string') {
         var pair = this.ParseMapItem(args['msg-content-map-item']);
         this.mapContent[pair[0]] = pair[1];
     }

@@ -63,7 +63,10 @@ Connector.PrintOutput = function() {
 };
 
 //public run method
-Connector.prototype.Run = function() {
+Connector.prototype.Run = function(opts) {
+    if(opts !== undefined) {
+        options = opts;
+    }
 
     //create connections and open
     for(var i = 0; i < options.count; i++) {
