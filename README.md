@@ -43,13 +43,19 @@ sender.Run(opts);
 ```
 
 ### Docker
-rhea-nodejs-client is very easy to install and deploy in a Docker container.
+To build image with CENTOS7 and rhea-nodejs-client use Dockerfile in project lib:
+```sh
+docker build -t rhea-nodejs-client-image
+```
+
+Or you can use [image from dockerhub](https://hub.docker.com/r/kornysd/rhea-nodejs-client/)
+```sh
+docker pull kornysd/rhea-nodejs-client
+```
+
 
 
 License
 ----
 
 Apache v2
-
-
-**Free Software, Hell Yeah!**
