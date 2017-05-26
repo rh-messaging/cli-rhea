@@ -17,13 +17,17 @@
 'use strict';
 
 var Utils = require('./utils.js');
-var Options = require('./optionsParser.js').ConnectorOptions;
 var CoreClient = require('./coreClient.js').CoreClient;
-var options = new Options();
-options.ParseArguments();
-CoreClient.RegistryUnhandledError();
-CoreClient.logStats = options.logStats;
-Utils.SetUpClientLogging(options.logLib);
+var Options = require('./optionsParser.js').ConnectorOptions;
+
+if (typeof window === 'undefined') {
+    var options = new Options();
+    options.ParseArguments();
+    CoreClient.RegistryUnhandledError();
+    CoreClient.logStats = options.logStats;
+    Utils.SetUpClientLogging(options.logLib);
+}
+
 var container = require('rhea');
 
 //dict of results
@@ -41,7 +45,7 @@ var Connector = function() {
     this.sessions = [];
     this.senders = [];
     this.receivers = [];
-    this.address = options.address ? options.address : 'jms.queue.test_connection';
+    this.address = '';
 };
 
 //close all connections, sessions, senders, receivers
@@ -62,11 +66,21 @@ Connector.PrintOutput = function() {
     console.log(JSON.stringify(results));
 };
 
-//public run method
 Connector.prototype.Run = function(opts) {
+    this.RunConnector(opts, false);
+};
+
+Connector.prototype.WebSocketRun = function(opts) {
+    this.RunConnector(opts, true);
+};
+
+//public run method
+Connector.prototype.RunConnector = function(opts, wsEnabled) {
     if(opts !== undefined) {
         options = opts;
     }
+
+    this.address = options.address ? options.address : 'test_connection';
 
     //create connections and open
     for(var i = 0; i < options.count; i++) {
@@ -74,34 +88,29 @@ Connector.prototype.Run = function(opts) {
             this.containers[i] = container.create_container();
 
             this.containers[i].on('connection_open', function(context) {
-                //console.log('%s opened', context.connection.options.id);
                 results.connections.open += 1;
             });
 
-            this.containers[i].on('connection_close', function(context) {
-                //console.log('%s closed', context.connection.options.id);
-            });
-
-            this.containers[i].on('disconnected', function(context) {
-                //console.log('%s disconnected', context.connection.options.id);
-            });
-
             this.containers[i].on('connection_error', function(context) {
-                //console.log('%s disconnected', context.connection.options.id);
                 results.connections.error += 1;
             });
 
             this.containers[i].on('receiver_open', function(context) {
-                //console.log('%s disconnected', context.connection.options.id);
                 results.receivers.open += 1;
             });
 
             this.containers[i].on('sender_open', function(context) {
-                //console.log('%s disconnected', context.connection.options.id);
                 results.senders.open += 1;
             });
 
-            this.connections[i] = this.containers[i].connect(CoreClient.BuildConnectionOptionsDict(options));
+            var connectionParams;
+            if(wsEnabled) {
+                connectionParams = CoreClient.BuildWebSocketConnectionDict(this.containers[i].websocket_connect(WebSocket), options);
+            }else {
+                connectionParams = CoreClient.BuildConnectionOptionsDict(options);
+            }
+
+            this.connections[i] = this.containers[i].connect(connectionParams);
         }catch(err) {
             results.connections.error += 1;
         }

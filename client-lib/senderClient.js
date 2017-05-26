@@ -19,84 +19,88 @@
 var Utils = require('./utils.js');
 var CoreClient = require('./coreClient.js').CoreClient;
 var Options = require('./optionsParser.js').SenderOptions;
-var options = new Options();
-options.ParseArguments();
-CoreClient.RegistryUnhandledError();
-CoreClient.logStats = options.logStats;
-Utils.SetUpClientLogging(options.logLib);
+
+if (typeof window === 'undefined') {
+    var options = new Options();
+    options.ParseArguments();
+    CoreClient.RegistryUnhandledError();
+    CoreClient.logStats = options.logStats;
+    Utils.SetUpClientLogging(options.logLib);
+}
+
 var container = require('rhea');
-
-//function for build message
-var createMessage = function(options, sentId) {
-    //message initialization
-    try {
-        var message = {};
-        message['body'] = {};
-        message['application_properties'] = {};
-        message['message_annotations'] = {};
-
-        //properties
-        message['message_id'] = options.msgId;
-        message['user_id'] = options.msgUserId;
-        message['group_id'] = options.msgGroupId;
-        message['group_sequence'] = options.msgGroupSeq;
-        message['reply_to_group_id'] = options.msgReplyToGroupId;
-        message['subject'] = options.msgSubject;
-        message['correlation_id'] = options.msgCorrelationId;
-        message['content_type'] = options.msgContentType;
-        message['reply_to'] = options.msgReplyTo;
-        message['delivery_count'] = 0;
-
-        message['to'] = options.address;
-
-        //message header
-        message['durable'] = options.msgDurable;
-        message['priority'] = options.msgPriority;
-        message['ttl'] = options.msgTtl;
-
-        //application properties
-        message.application_properties = options.application_properties;
-
-        //message annotation
-        message.message_annotations = options.messageAnnotations;
-
-        //body
-        if (options.msgContent) {
-            message.body = options.msgContent;
-            if (typeof options.msgContent === 'string')
-                message.body = options.msgContent.replace('%d', sentId);
-        }
-        if (options.listContent && options.listContent.length > 0) {
-            message.body = options.listContent;
-        }
-        if (options.mapContent && Object.keys(options.mapContent).length > 0) {
-            message.body = options.mapContent;
-        }
-        if (options.msgContentFromFile && options.msgContentFromFile) {
-            message.body = options.msgContentFromFile;
-        }
-
-        return message;
-    } catch (err) {
-        Utils.PrintError(err);
-        process.exit(Utils.ReturnCodes.Error);
-    }
-};
 
 //class sender
 var Sender = function() {
-    var confirmed = 0;
-    var sent = 0;
-    var ts;
-    var timer_task;
+    this.confirmed = 0;
+    this.sent = 0;
+    this.ts;
+    this.timer_task;
 
-    var sendMessage = function(context) {
+    //function for build message
+    this.createMessage = function(options, sentId) {
+        //message initialization
+        try {
+            var message = {};
+            message['body'] = {};
+            message['application_properties'] = {};
+            message['message_annotations'] = {};
+
+            //properties
+            message['message_id'] = options.msgId;
+            message['user_id'] = options.msgUserId;
+            message['group_id'] = options.msgGroupId;
+            message['group_sequence'] = options.msgGroupSeq;
+            message['reply_to_group_id'] = options.msgReplyToGroupId;
+            message['subject'] = options.msgSubject;
+            message['correlation_id'] = options.msgCorrelationId;
+            message['content_type'] = options.msgContentType;
+            message['reply_to'] = options.msgReplyTo;
+            message['delivery_count'] = 0;
+
+            message['to'] = options.address;
+
+            //message header
+            message['durable'] = options.msgDurable;
+            message['priority'] = options.msgPriority;
+            message['ttl'] = options.msgTtl;
+
+            //application properties
+            message.application_properties = options.application_properties;
+
+            //message annotation
+            message.message_annotations = options.messageAnnotations;
+
+            //body
+            if (options.msgContent) {
+                message.body = options.msgContent;
+                if (typeof options.msgContent === 'string')
+                    message.body = options.msgContent.replace('%d', sentId);
+            }
+            if (options.listContent && options.listContent.length > 0) {
+                message.body = options.listContent;
+            }
+            if (options.mapContent && Object.keys(options.mapContent).length > 0) {
+                message.body = options.mapContent;
+            }
+            if (options.msgContentFromFile && options.msgContentFromFile) {
+                message.body = options.msgContentFromFile;
+            }
+
+            return message;
+        } catch (err) {
+            Utils.PrintError(err);
+            process.exit(Utils.ReturnCodes.Error);
+        }
+    };
+
+    this.sendMessage = function(context) {
         if (options.duration > 0) {
-            NextRequest(context);
+            context.container.NextRequest(context);
         } else {
-            while (sent < options.count) {
-                sent++;
-                var message = createMessage(options, sent - 1);
+            while (context.container.sent < options.count) {
+                context.container.sent++;
+                var message = context.container.createMessage(options, context.container.sent - 1);
 
                 if (options.anonymous) {
                     context.connection.send(message);
@@ -114,9 +118,9 @@ var Sender = function() {
     };
 
     //scheduled sending messages
-    var NextRequest = function(context) {
-        sent++;
-        var message = createMessage(options, confirmed);
+    this.NextRequest = function(context) {
+        context.container.sent++;
+        var message = context.container.createMessage(options, context.container.confirmed);
 
         if (options.anonymous) {
             context.connection.send(message);
@@ -130,24 +134,25 @@ var Sender = function() {
             Utils.PrintStatistic(context);
         }
 
-        if (confirmed < options.count) {
+        if (context.container.confirmed < options.count) {
             var timeout = Utils.CalculateDelay(options.count, options.duration);
-            timer_task = setTimeout(NextRequest, timeout, context);
+            context.container.timer_task = setTimeout(context.container.NextRequest, timeout, context);
         } else {
-            clearTimeout(timer_task);
+            clearTimeout(context.container.timer_task);
         }
     };
 
     //send messages
     this.on('sendable', function(context) {
-        sendMessage(context);
+        context.container.sendMessage(context);
     });
 
     //on accept message
     this.on('accepted', function(context) {
-        if (++confirmed === options.count && !options.autoSettleOff) {
+        if (++context.container.confirmed === options.count && !options.autoSettleOff) {
+            context.container.sent = context.container.confirmed = 0;
             CoreClient.CancelTimeout();
-            clearTimeout(timer_task);
+            clearTimeout(context.container.timer_task);
             CoreClient.Close(context, options.closeSleep, false);
         }
     });
@@ -161,7 +166,7 @@ var Sender = function() {
 
     //on disconnected
     this.on('disconnected', function(context) {
-        clearTimeout(timer_task);
+        clearTimeout(context.container.timer_task);
         CoreClient.OnDisconnect(context);
     });
 
@@ -187,9 +192,9 @@ var Sender = function() {
 
     //on settled
     this.on('settled', function(context) {
-        if (confirmed === options.count && options.autoSettleOff) {
+        if (context.container.confirmed === options.count && options.autoSettleOff) {
             CoreClient.CancelTimeout();
-            clearTimeout(timer_task);
+            clearTimeout(context.container.timer_task);
             CoreClient.Close(context, options.closeSleep, false);
         }
     });
@@ -197,7 +202,7 @@ var Sender = function() {
     //on connection open
     this.on('connection_open', function(context) {
         if (options.anonymous) {
-            sendMessage(context);
+            context.container.sendMessage(context);
         }
     });
 
@@ -206,7 +211,7 @@ var Sender = function() {
         if(opts !== undefined) {
             options = opts;
         }
-        ts = Utils.GetTime();
+        this.ts = Utils.GetTime();
         try {
             //run sender client
             var connection = this.connect(CoreClient.BuildConnectionOptionsDict(options));
@@ -217,6 +222,18 @@ var Sender = function() {
             Utils.PrintError(err);
             process.exit(Utils.ReturnCodes.Error);
         }
+    };
+
+    //public run method for execute browser sending
+    this.WebSocketRun = function(opts) {
+        if(opts !== undefined) {
+            options = opts;
+        }
+        this.ts = Utils.GetTime();
+
+        var ws = this.websocket_connect(WebSocket);
+        this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
+          .open_sender(options.address);
     };
 };
 Sender.prototype = Object.create(container);

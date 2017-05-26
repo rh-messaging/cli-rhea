@@ -55,20 +55,8 @@ var ReadContentFromFile = function (path) {
 };
 
 //function return current time in seconds
-var GetTime = function (){
+var GetTime = function () {
     return (0.001 * new Date().getTime());
-};
-
-//custom sleep operation
-var Sleep4Next = function (initTimeStamp, count, duration, nextIterIndex) {
-    if((duration > 0) && (count > 0)) {
-        var cumulative = (1.0 * nextIterIndex * duration) / count;
-        while(true) {
-            if(GetTime() - initTimeStamp - cumulative > -0.1) {
-                break;
-            }
-        }
-    }
 };
 
 var CalculateDelay = function(count, duration) {
@@ -128,7 +116,6 @@ var StringifyStatObject = function(statistics) {
 exports.ReturnCodes = ReturnCodes;
 exports.PrintMessage = PrintMessage;
 exports.ReadContentFromFile = ReadContentFromFile;
-exports.Sleep4Next = Sleep4Next;
 exports.CalculateDelay = CalculateDelay;
 exports.GetTime = GetTime;
 exports.SetUpClientLogging = SetUpClientLogging;

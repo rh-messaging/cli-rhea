@@ -228,5 +228,40 @@ CoreClient.BuildSenderOptionsDict = function(options) {
     return senderOptions;
 };
 
+CoreClient.BuildWebSocketConnString = function(options) {
+    var connTemplate = 'ws://%BROKER:%PORT';
+    return connTemplate.replace('%BROKER', options.url).replace('%PORT', options.port);
+};
+
+CoreClient.BuildWebSocketConnectionDict = function(ws, options) {
+    var connectionDict = {};
+
+    //destination setting
+    connectionDict['connection_details'] = ws(CoreClient.BuildWebSocketConnString(options), ['binary', 'AMQPWSB10', 'amqp']);
+
+    //sasl
+    connectionDict['username'] = options.username;
+    connectionDict['password'] = options.password;
+
+    //reconnect
+    if(options.reconnect) {
+        connectionDict['reconnect_limit'] = options.reconnectLimit;
+        if(options.reconnectInterval) {
+            connectionDict['initial_reconnect_delay'] = options.reconnectInterval;
+            connectionDict['max_reconnect_delay'] = options.reconnectInterval;
+        }
+    }else if (!options.reconnect) {
+        connectionDict['reconnect'] = false;
+    }
+    //max frame size
+    connectionDict['max_frame_size'] = options.frameSize;
+    //heartbeat
+    if (options.heartbeat) {
+        connectionDict['idle_time_out'] = options.heartbeat;
+    }
+
+    return connectionDict;
+};
+
 //===========================================================================
 exports.CoreClient = CoreClient;
