@@ -10,7 +10,7 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - npm install mocha chai
+  - npm install rhea mocha chai
 
 # Post-install test scripts.
 test_script:
@@ -18,6 +18,7 @@ test_script:
   - node --version
   - npm --version
   # run tests
+
   - npm run-script test
 
 # Don't actually build.
