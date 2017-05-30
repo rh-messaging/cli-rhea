@@ -30,11 +30,6 @@ describe('Client import', function() {
             expect(client.ReceiverClient).to.be.a('Object');
         });
     });
-    describe('"ReceiverClient"', function() {
-        it('should export a object', function() {
-            expect(client.ReceiverClient).to.be.a('Object');
-        });
-    });
     describe('"ConnectorClient"', function() {
         it('should export a object', function() {
             expect(client.ConnectorClient).to.be.a('Object');
