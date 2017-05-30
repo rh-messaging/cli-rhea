@@ -38,7 +38,7 @@ var sender = rhea_client.SenderClient;
 opts.broker('username:password@localhost:5672');
 opts.address = 'queue_test';
 opts.count = 2;
-opts.content = 'text message';
+opts.msgContent = 'text message';
 
 sender.Run(opts);
 ```
