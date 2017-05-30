@@ -19,59 +19,59 @@
 var client = require('../client-lib/client.js');
 var expect = require('chai').expect;
 
-describe('Client import', () => {
-    describe('"SenderClient"', () => {
-        it('should export a object', () => {
+describe('Client import', function() {
+    describe('"SenderClient"', function() {
+        it('should export a object', function() {
             expect(client.SenderClient).to.be.a('Object');
         });
     });
-    describe('"ReceiverClient"', () => {
-        it('should export a object', () => {
+    describe('"ReceiverClient"', function() {
+        it('should export a object', function() {
             expect(client.ReceiverClient).to.be.a('Object');
         });
     });
-    describe('"ReceiverClient"', () => {
-        it('should export a object', () => {
+    describe('"ReceiverClient"', function() {
+        it('should export a object', function() {
             expect(client.ReceiverClient).to.be.a('Object');
         });
     });
-    describe('"ConnectorClient"', () => {
-        it('should export a object', () => {
+    describe('"ConnectorClient"', function() {
+        it('should export a object', function() {
             expect(client.ConnectorClient).to.be.a('Object');
         });
     });
-    describe('"Options"', () => {
-        it('should export a object', () => {
+    describe('"Options"', function() {
+        it('should export a object', function() {
             expect(client.Options).to.be.a('Object');
         });
     });
-    describe('"SenderClient.Run"', () => {
-        it('should export a function', () => {
+    describe('"SenderClient.Run"', function() {
+        it('should export a function', function() {
             expect(client.SenderClient.Run).to.be.a('function');
         });
     });
-    describe('"SenderClient.WebSocketRun"', () => {
-        it('should export a function', () => {
+    describe('"SenderClient.WebSocketRun"', function() {
+        it('should export a function', function() {
             expect(client.SenderClient.WebSocketRun).to.be.a('function');
         });
     });
-    describe('"ReceiverClient.Run"', () => {
-        it('should export a function', () => {
+    describe('"ReceiverClient.Run"', function() {
+        it('should export a function', function() {
             expect(client.ReceiverClient.Run).to.be.a('function');
         });
     });
-    describe('"ReceiverClient.WebSocketRun"', () => {
-        it('should export a function', () => {
+    describe('"ReceiverClient.WebSocketRun"', function() {
+        it('should export a function', function() {
             expect(client.ReceiverClient.WebSocketRun).to.be.a('function');
         });
     });
-    describe('"ConnectorClient.Run"', () => {
-        it('should export a function', () => {
+    describe('"ConnectorClient.Run"', function() {
+        it('should export a function', function() {
             expect(client.ConnectorClient.Run).to.be.a('function');
         });
     });
-    describe('"ConnectorClient.WebSocketRun"', () => {
-        it('should export a function', () => {
+    describe('"ConnectorClient.WebSocketRun"', function() {
+        it('should export a function', function() {
             expect(client.ConnectorClient.WebSocketRun).to.be.a('function');
         });
     });
