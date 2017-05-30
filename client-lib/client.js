@@ -34,6 +34,8 @@ var Options = {
     frameSize: 4294967295,
     arrHosts: [],
     arrPorts: [],
+    url: 'localhost',
+    port: 5672,
 
     //base opts
     'broker': function(brokerUrl) {
