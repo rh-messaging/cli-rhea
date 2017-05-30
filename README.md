@@ -1,6 +1,7 @@
 # Rhea nodejs client
 Rhea client is javascript client built on [RHEA](https://www.npmjs.com/package/rhea) amqp library.
 
+[![Build status](https://ci.appveyor.com/api/projects/status/08ivt2jny85oon8o?svg=true)](https://ci.appveyor.com/project/dkornel/rhea-nodejs-client)
 
 ### Installation
 
