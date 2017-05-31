@@ -1,4 +1,4 @@
-# Rhea nodejs client
+# CLI-RHEA
 Rhea testing client is javascript client built on [RHEA](https://www.npmjs.com/package/rhea) amqp library.
 
 [![Build status](https://ci.appveyor.com/api/projects/status/08ivt2jny85oon8o?svg=true)](https://ci.appveyor.com/project/dkornel/rhea-nodejs-client)
@@ -10,13 +10,13 @@ rhea-nodejs-client requires [Node.js](https://nodejs.org/) v0.10+ to run.
 Install to global env, if you would like use client as cmd program.
 
 ```sh
-$ npm install rhea-nodejs-client -g
+$ npm install cli-rhea -g
 ```
 
 For standart using install to local env.
 
 ```sh
-$ npm install rhea-nodejs-client
+$ npm install cli-rhea
 ```
 
 ### Using
@@ -49,7 +49,7 @@ To build image with CENTOS7 and rhea-nodejs-client use Dockerfile in project lib
 docker build -t cli-rhea-image
 ```
 
-Or you can use [image from dockerhub](https://hub.docker.com/r/kornysd/rhea-nodejs-client/)
+Or you can use [image from dockerhub](https://hub.docker.com/r/kornysd/cli-rhea/)
 ```sh
 docker pull kornysd/cli-rhea
 ```
