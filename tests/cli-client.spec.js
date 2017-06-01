@@ -165,4 +165,13 @@ describe('Running bin cmd client', function() {
     it('Connector client help', function(done) {
         verify(done, [example('../bin/connector-client.js', ['--help'])]);
     });
+    it('Sender client base run without reconnect', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--conn-reconnect', false])]);
+    });
+    it('Receiver client base run without reconnect', function(done) {
+        verify(done, [example('../bin/receiver-client.js', ['--conn-reconnect', false])]);
+    });
+    it('Connector client base run without reconnect', function(done) {
+        verify(done, [example('../bin/connector-client.js', ['--conn-reconnect', false])]);
+    });
 });

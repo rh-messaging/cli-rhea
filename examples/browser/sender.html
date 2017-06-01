@@ -8,10 +8,9 @@
 
   <body>
     <script type="text/javascript">
-      var clients = require('rhea-nodejs-client');
+      var clients = require('cli-rhea');
       var opts = clients.Options;
       opts.logMsgs = 'interop';
-      opts.count = 5;
       opts.msgDurable = true;
       opts.msgPriority = 2;
       opts.msgContent = 'Simple test message';
