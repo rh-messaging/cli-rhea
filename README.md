@@ -1,11 +1,11 @@
 # CLI-RHEA
 Rhea testing client is javascript client built on [RHEA](https://www.npmjs.com/package/rhea) amqp library.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/08ivt2jny85oon8o?svg=true)](https://ci.appveyor.com/project/dkornel/rhea-nodejs-client)
+[![Build status](https://ci.appveyor.com/api/projects/status/t1eed8w9ftcamtb1/branch/master?svg=true)](https://ci.appveyor.com/project/dkornel/cli-rhea/branch/master)
 
 ### Installation
 
-rhea-nodejs-client requires [Node.js](https://nodejs.org/) v0.10+ to run.
+cli-rhea requires [Node.js](https://nodejs.org/) v0.10+ to run.
 
 Install to global env, if you would like use client as cmd program.
 
