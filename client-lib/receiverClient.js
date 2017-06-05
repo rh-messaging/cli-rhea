@@ -37,6 +37,7 @@ var Receiver = function () {
     this.expected = 0;
     this.defaultCredit = 0;
     this.batch = 0;
+    this.receiverOpened = false;
     this.ts;
 
     //handler function for on message
@@ -84,8 +85,9 @@ var Receiver = function () {
     this.on('receiver_open', function(context) {
         if(options.recvListen && context.receiver.target.address === options.address) {
             context.receiver.on('message', onMessageHandler);
-        }else if (!options.recvListen && CoreClient.reconnectCount === 0) {
+        }else if (!options.recvListen && !context.container.receiverOpened) {
             context.receiver.on('message', onMessageHandler);
+            context.container.receiverOpened = true;
         }
         if(options.recvBrowse || options.count === 0) {
             context.receiver.flow(context.container.batch);
