@@ -10,7 +10,7 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - npm install rhea mocha chai yargs@7.1.0 child_process assert sprintf-js
+  - npm install rhea mocha chai yargs@7.1.0 child_process assert string-format-js
 
 # Post-install test scripts.
 test_script:
