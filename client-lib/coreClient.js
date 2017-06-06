@@ -41,6 +41,7 @@ CoreClient.Close = function (context, closeSleep, isListener) {
         if(isListener) {
             process.exit(Utils.ReturnCodes.OK);
         }
+        clearTimeout(context.container.timer_task);
         context.sender && context.sender.detach();
         context.receiver && context.receiver.detach();
         context.connection.close();
