@@ -19,6 +19,7 @@
 var Utils = require('./utils.js');
 var CoreClient = require('./coreClient.js').CoreClient;
 var Options = require('./optionsParser.js').SenderOptions;
+var sprintf = require('sprintf-js').sprintf;
 
 if (typeof window === 'undefined') {
     var options = new Options();
@@ -75,7 +76,7 @@ var Sender = function() {
             if (options.msgContent) {
                 message.body = options.msgContent;
                 if (typeof options.msgContent === 'string')
-                    message.body = options.msgContent.replace('%d', sentId);
+                    message.body = sprintf(options.msgContent, [sentId]);
             }
             if (options.listContent && options.listContent.length > 0) {
                 message.body = options.listContent;

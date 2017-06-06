@@ -1,6 +1,6 @@
 {
   "name": "cli-rhea",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Client interface built on grs/rhea lib",
   "scripts": {
     "test": "mocha tests/**.spec.js",
@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "yargs": "7.1.0",
-    "rhea": "^0.2.0"
+    "rhea": "^0.2.0",
+    "sprintf-js": ""
   },
   "keywords": [
     "rhea",
