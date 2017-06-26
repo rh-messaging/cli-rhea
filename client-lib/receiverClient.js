@@ -63,7 +63,7 @@ var Receiver = function () {
         }
 
         //if received all expected messages and timeout is 0 close connection
-        if (!options.processReplyTo && context.container.received === context.container.expected) {
+        if (((!options.processReplyTo) || options.recvListen) && context.container.received === context.container.expected) {
             context.container.received = 0;
             CoreClient.CancelTimeout();
             CoreClient.Close(context, options.closeSleep, options.recvListen);
@@ -155,6 +155,7 @@ var Receiver = function () {
                     .open_receiver(CoreClient.BuildReceiverOptionsDict(options));
             }else{
                 //run local listener
+                options.closeSleep = 1000; //add here 1000ms wait for accept last message
                 this.listen({port: options.recvListenPort});
                 if(options.timeout > 0) {
                     CoreClient.TimeoutClose(null, options.timeout, options.recvListen);

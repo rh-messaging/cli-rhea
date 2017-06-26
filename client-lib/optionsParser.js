@@ -99,7 +99,7 @@ BasicOptions.prototype.ParseBasic = function() {
         .usage('$0 [args]')
         .options({
             'broker':               { alias: 'b', default: 'localhost:5672', describe: 'address of machine with broker (i.e. admin:admin@broker-address:5672)'},
-            'address':              { alias: 'a', describe: 'address of queue'},
+            'address':              { alias: 'a', default: 'examples', describe: 'address of queue'},
             'count':                { alias: 'c', default: 1, describe: 'count of messages', type: 'uint'},
             'close-sleep':          { default: 0, describe: 'sleep before sender/receiver/session/connection.close()', type: 'uint'},
             'timeout':              { alias: 't', default: 0, describe: 'timeout berofe exiting'},

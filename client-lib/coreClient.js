@@ -32,19 +32,20 @@ CoreClient.logstats;
 
 CoreClient.Close = function (context, closeSleep, isListener) {
     if(closeSleep) {
-        CoreClient.TimeoutClose(context, closeSleep);
+        CoreClient.TimeoutClose(context, closeSleep, isListener);
     }else{
         if (CoreClient.logStats === 'endpoints') {
             Utils.PrintStatistic(context);
         }
 
-        if(isListener) {
-            process.exit(Utils.ReturnCodes.OK);
-        }
         clearTimeout(context.container.timer_task);
         context.sender && context.sender.detach();
         context.receiver && context.receiver.detach();
         context.connection.close();
+
+        if(isListener) {
+            process.exit(Utils.ReturnCodes.OK);
+        }
     }
 };
 
