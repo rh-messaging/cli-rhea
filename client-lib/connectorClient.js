@@ -30,7 +30,9 @@ if (typeof window === 'undefined') {
 
 var container = require('rhea');
 
-//dict of results
+/**
+ * Dict for results
+ */
 var results = {
     'connections': {'open': 0, 'error': 0},
     'sessions': {'open': 0, 'error' : 0},
@@ -38,7 +40,10 @@ var results = {
     'receivers': {'open': 0, 'error': 0},
 };
 
-//class connector
+/**
+ * @class Connector
+ * Represet client that makes couple of connections, sessions, sender links and receiver links
+ */
 var Connector = function() {
     this.containers = [];
     this.connections = [];
@@ -48,7 +53,13 @@ var Connector = function() {
     this.address = '';
 };
 
-//close all connections, sessions, senders, receivers
+/**
+ * Close all connection, sessions, senders and receiver
+ * @method CloseObjects
+ * @memberof Connector
+ * @param {Object} connector
+ * @static
+ */
 Connector.CloseObjects = function(connector) {
     for (var i = 0; i < options.count; i++) {
         if(options.objCtrl.indexOf('R') > -1)
@@ -62,19 +73,45 @@ Connector.CloseObjects = function(connector) {
     }
 };
 
+
+/**
+ * print results
+ * @method PrintOutput
+ * @memberof Connector
+ * @static
+ */
 Connector.PrintOutput = function() {
     console.log(JSON.stringify(results));
 };
 
+/**
+ * run method for amqp
+ * @method Run
+ * @memberof Connector
+ * @param {Object} opts
+ */
 Connector.prototype.Run = function(opts) {
     this.RunConnector(opts, false);
 };
 
+
+/**
+ * run method for amqp over websocker
+ * @method WebSocketRun
+ * @param {Object} opts
+ * @memberof Connector
+ */
 Connector.prototype.WebSocketRun = function(opts) {
     this.RunConnector(opts, true);
 };
 
-//public run method
+/**
+ * run method
+ * @method RunConnector
+ * @param {Object} opts
+ * @param {boolean} wsEnabled
+ * @memberof Connector
+ */
 Connector.prototype.RunConnector = function(opts, wsEnabled) {
     if(opts !== undefined) {
         options = opts;
@@ -157,4 +194,11 @@ Connector.prototype.RunConnector = function(opts, wsEnabled) {
 };
 
 //////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @module Connector
+ * @description Connecto class
+ */
+
+/** Connector class */
 exports.Connector = Connector;

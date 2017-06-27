@@ -18,7 +18,11 @@
 var formatter = require('./formatter.js');
 var fs = require('fs');
 
-//enum with return codes
+/**
+* @member RetunCodes
+* @description Error codes dict
+* @memberof Utils
+*/
 var ReturnCodes = {
     OK: 0,
     Error: 1,
@@ -30,7 +34,13 @@ var ReturnCodes = {
     }
 };
 
-//formating and printing message
+/**
+* @function PrintMessage
+* @description call print method by format type
+* @param {object} message - message dict
+* @param {string} format - format type of message out
+* @memberof Utils
+*/
 var PrintMessage = function (message, format) {
     if(format === 'body') {
         console.log(formatter.FormatBody(message));
@@ -43,7 +53,13 @@ var PrintMessage = function (message, format) {
     }
 };
 
-//reading content from file
+/**
+* @function ReadContentFromFile
+* @description read content from file
+* @param {string} path - path to file to read
+* @return {string} content from file
+* @memberof Utils
+*/
 var ReadContentFromFile = function (path) {
     try{
         var data = fs.readFileSync(path, 'utf8');
@@ -54,17 +70,36 @@ var ReadContentFromFile = function (path) {
     }
 };
 
-//function return current time in seconds
+/**
+* @function GetTime
+* @description get curent time in ms
+* @return {integer} time in ms
+* @memberof Utils
+*/
 var GetTime = function () {
     return (0.001 * new Date().getTime());
 };
 
+/**
+* @function CalculateDelay
+* @description calculate delay between messages
+* @param {integer} count - count of message
+* @param {integer} duration - duration in ms
+* @return {integer} delay time in ms
+* @memberof Utils
+*/
 var CalculateDelay = function(count, duration) {
     if((duration > 0) && (count > 0)) {
         return 1.0 * duration / count;
     }
 };
 
+/**
+* @function SetUpClientLogging
+* @description setup client logging
+* @param {string} logLevel - type to logging
+* @memberof Utils
+*/
 var SetUpClientLogging = function (logLevel) {
     if (!logLevel) {
         return;
@@ -82,14 +117,33 @@ var SetUpClientLogging = function (logLevel) {
     }
 };
 
+/**
+* @function PrintError
+* @description print error on stderr
+* @param {string} errMsg - error message
+* @memberof Utils
+*/
 var PrintError = function (errMsg) {
     console.error(formatter.FormatError(errMsg));
 };
 
+/**
+* @function PrintStatistic
+* @description print statistic of client
+* @param {object} context - event context
+* @memberof Utils
+*/
 var PrintStatistic = function (context) {
     console.log(formatter.FormatStats(StringifyStatObject(context)));
 };
 
+/**
+* @function StringifyStatObject
+* @description help function ro remove circuit reference in stats object
+* @param {object} statistics - object with statistics
+* @return {object} dict
+* @memberof Utils
+*/
 var StringifyStatObject = function(statistics) {
     var cache = [];
     var str = JSON.stringify(statistics,
@@ -113,11 +167,24 @@ var StringifyStatObject = function(statistics) {
 };
 
 /////////////////////////////////////////////////////////////////
+/**
+ * @module Utils
+ * @description Module with utils functions
+ */
+
+/** return codes */
 exports.ReturnCodes = ReturnCodes;
+/** function for print message */
 exports.PrintMessage = PrintMessage;
+/** function for read content from file*/
 exports.ReadContentFromFile = ReadContentFromFile;
+/** function for calculate delay */
 exports.CalculateDelay = CalculateDelay;
+/** function for get time in ms */
 exports.GetTime = GetTime;
+/** function for setup lib logging */
 exports.SetUpClientLogging = SetUpClientLogging;
+/** function for print err */
 exports.PrintError = PrintError;
+/** function fot print statistics */
 exports.PrintStatistic = PrintStatistic;

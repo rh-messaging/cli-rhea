@@ -15,8 +15,13 @@
  */
 'use strict';
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var yargs = require('yargs');
+var utils = require('./utils.js');
 
-//connection options
+/**
+ * @class ConnectionOptions
+ * @description Class to parse and store connection options
+ */
 var ConnectionOptions = function () {
     this.connUrls;
     this.reconnect;
@@ -35,8 +40,13 @@ var ConnectionOptions = function () {
     this.arrPorts = [];
 };
 
+/**
+ * @method ParseConnectionOptions
+ * @description Parse connection options
+ * @memberof ConnectionOptions
+ */
 ConnectionOptions.prototype.ParseConnectionOptions = function() {
-    var args = require('yargs')
+    var args = yargs
         .usage('$0 [args]')
         .options({
             'conn-urls':                    { describe: 'broker adresses and ports for failover conection e.g. ["host1:port", "host2:port"]', type: 'string'},
@@ -77,7 +87,11 @@ ConnectionOptions.prototype.ParseConnectionOptions = function() {
 };
 
 
-//class for parse and store basic arguments for clients
+/**
+ * @class BasicOptions
+ * @description Class to parse and store together options
+ * @extends ConnectionOptions
+ */
 var BasicOptions = function () {
     this.username;
     this.password;
@@ -93,9 +107,14 @@ var BasicOptions = function () {
 };
 
 BasicOptions.prototype = Object.create(ConnectionOptions.prototype);
-//method for parse basic arguments
+
+/**
+ * @method ParseBasic
+ * @description Parse basic options
+ * @memberof BasicOptions
+ */
 BasicOptions.prototype.ParseBasic = function() {
-    var args = require('yargs')
+    var args = yargs
         .usage('$0 [args]')
         .options({
             'broker':               { alias: 'b', default: 'localhost:5672', describe: 'address of machine with broker (i.e. admin:admin@broker-address:5672)'},
@@ -142,6 +161,12 @@ BasicOptions.prototype.ParseBasic = function() {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @class SenderReceiverOptions
+ * @description Class to parse and store together options for sender and receiver
+ * @extends BasicOptions
+ */
 var SenderReceiverOptions = function () {
     this.duration;
     this.linkAtMostOnce;
@@ -150,8 +175,14 @@ var SenderReceiverOptions = function () {
 };
 
 SenderReceiverOptions.prototype = Object.create(BasicOptions.prototype);
+
+/**
+ * @method ParseSenderReceiverArguments
+ * @description Parse sender and receiver together options
+ * @memberof SenderReceiverOptions
+ */
 SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function() {
-    var args = require('yargs')
+    var args = yargs
         .usage('$0 [args]')
         .options({
             'duration':                 { default: 0, describe: 'duration of sending or receiving messages', type: 'uint'},
@@ -169,14 +200,26 @@ SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function() {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @class ConnectorOptions
+ * @description Class to parse and store ConnectorClient options
+ * @extends BasicOptions
+ */
 var ConnectorOptions = function () {
     //conector options
     this.objCtrl;
 };
 
 ConnectorOptions.prototype = Object.create(BasicOptions.prototype);
+
+/**
+ * @method ParseArguments
+ * @description Parse ConnectorClient options
+ * @memberof ConnectorOptions
+ */
 ConnectorOptions.prototype.ParseArguments = function() {
-    var args = require('yargs')
+    var args = yargs
         .usage('$0 [args]')
         .options({
             'obj-ctrl': { default: 'C', describe: 'Optional creation object control based on <object-ids>, syntax C/E/S/R stands for Connection, sEssion, Sender, Receiver'},
@@ -188,6 +231,12 @@ ConnectorOptions.prototype.ParseArguments = function() {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @class ReceiverOptions
+ * @description Class to parse and store Receiverclient options
+ * @extends SenderReceiverOptions
+ */
 var ReceiverOptions = function () {
     //receiver options
     this.msgSelector;
@@ -200,8 +249,14 @@ var ReceiverOptions = function () {
 };
 
 ReceiverOptions.prototype = Object.create(SenderReceiverOptions.prototype);
+
+/**
+ * @method ParseArguments
+ * @description Parse ReceiverClient options
+ * @memberof ReceiverOptions
+ */
 ReceiverOptions.prototype.ParseArguments = function() {
-    var args = require('yargs')
+    var args = yargs
         .usage('$0 [args]')
         .options({
             'msg-selector':     { alias: 'recv-selector', describe: 'sql selector to broker'},
@@ -229,7 +284,12 @@ ReceiverOptions.prototype.ParseArguments = function() {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Options class for sender, parse and store options from command line
+
+/**
+ * @class SenderOptions
+ * @description Class to parse and store SenderClient options
+ * @extends SenderReceiverOptions
+ */
 var SenderOptions = function () {
     //sender options
     this.msgId;
@@ -256,6 +316,13 @@ var SenderOptions = function () {
     this.application_properties = {};
     this.messageAnnotations={};
 
+    /**
+    * @method ParseDataType
+    * @description Cast string data from cmd args to data type
+    * @param {string} data - string data
+    * @return typed data
+    * @memberof SenderOptions
+    */
     this.ParseDataType = function (data) {
         if(data === undefined) {
             return data;
@@ -278,6 +345,13 @@ var SenderOptions = function () {
         return data;
     };
 
+    /**
+    * @method ParseMapItem
+    * @description Parse string map item
+    * @param {string} data - map string item (e.g. 'key'='value')
+    * @return vaue of map item
+    * @memberof SenderOptions
+    */
     this.ParseMapItem = function (data) {
         var listData = data.split('=');
         if(listData.length === 1) {
@@ -291,8 +365,14 @@ var SenderOptions = function () {
 };
 
 SenderOptions.prototype = Object.create(SenderReceiverOptions.prototype);
+
+/**
+ * @method ParseArguments
+ * @description Parse Senderclient options
+ * @memberof SenderOptions
+ */
 SenderOptions.prototype.ParseArguments = function() {
-    var args = require('yargs')
+    var args = yargs
         .usage('$0 [args]')
         .options({
             'msg-id':                   { alias: 'i', describe: 'message id'},
@@ -342,7 +422,7 @@ SenderOptions.prototype.ParseArguments = function() {
     this.anonymous = args['anonymous'];
 
     if(args['msg-content-from-file']) {
-        var ReadContentFromFile = require('./utils.js').ReadContentFromFile;
+        var ReadContentFromFile = utils.ReadContentFromFile;
         this.msgContentFromFile = ReadContentFromFile(args['msg-content-from-file']);
     }
 
@@ -389,7 +469,11 @@ SenderOptions.prototype.ParseArguments = function() {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//export classes
+/**
+ * @module Options
+ * @description Provides functionality for parsing cmd args
+ */
+
 exports.ReceiverOptions = ReceiverOptions;
 exports.SenderOptions = SenderOptions;
 exports.ConnectorOptions = ConnectorOptions;

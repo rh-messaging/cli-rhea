@@ -30,7 +30,11 @@ if (typeof window === 'undefined') {
 
 var container = require('rhea');
 
-//class receiver
+/**
+ * @class Receiver
+ * @description Class represents Receiver client
+ * @extends rhea.container
+ */
 var Receiver = function () {
     this.received = 0;
     this.replyToSent = 0;
@@ -40,7 +44,13 @@ var Receiver = function () {
     this.receiverOpened = false;
     this.ts;
 
-    //handler function for on message
+    /**
+    * @method onMessageHandler
+    * @private
+    * @description handler function for handle message event
+    * @param {object} context - event context
+    * @memberof Receiver
+    */
     function onMessageHandler(context) {
         context.container.received++;
 
@@ -81,7 +91,6 @@ var Receiver = function () {
         }
     }
 
-    //event raised when receiver is opening
     this.on('receiver_open', function(context) {
         if(options.recvListen && context.receiver.target.address === options.address) {
             context.receiver.on('message', onMessageHandler);
@@ -133,6 +142,11 @@ var Receiver = function () {
         }
     });
 
+    /**
+    * @method Init
+    * @description init receiver base params
+    * @memberof Receiver
+    */
     this.Init = function() {
         this.expected = options.count;
         this.defaultCredit = this.expected ? this.expected : 10;
@@ -140,7 +154,12 @@ var Receiver = function () {
         this.ts = Utils.GetTime();
     };
 
-    //public run method for receiver
+    /**
+    * @method Run
+    * @description public method for run receiver client
+    * @param {object} opts - options dict
+    * @memberof Receiver
+    */
     this.Run = function (opts) {
         if(opts !== undefined) {
             options = opts;
@@ -167,6 +186,12 @@ var Receiver = function () {
         }
     };
 
+    /**
+    * @method WebSocketRun
+    * @description public method for run receiver client with websocket
+    * @param {object} opts - options dict
+    * @memberof Receiver
+    */
     //public run method for browser running
     this.WebSocketRun = function(opts) {
         if(opts !== undefined) {
@@ -181,4 +206,10 @@ var Receiver = function () {
 };
 Receiver.prototype = Object.create(container);
 //////////////////////////////////////////////////////////////////////////////////
+/**
+ * @module Receiver
+ * @description Receiver client class
+ */
+
+/** Receiver class */
 exports.Receiver = Receiver;

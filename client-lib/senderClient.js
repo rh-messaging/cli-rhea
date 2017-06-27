@@ -31,15 +31,27 @@ if (typeof window === 'undefined') {
 
 var container = require('rhea');
 
-//class sender
+/**
+ * @class Sender
+ * @description Class represents Sender client
+ * @extends rhea.container
+ */
 var Sender = function() {
     this.confirmed = 0;
     this.sent = 0;
     this.ts;
     this.timer_task;
 
-    //function for build message
-    this.createMessage = function(options, sentId) {
+    /**
+    * @method createMessage
+    * @private
+    * @description create message dict
+    * @param {object} options - sender client options
+    * @param {int} sentId - index of message
+    * @return {object} Message dict
+    * @memberof Sender
+    */
+    function createMessage(options, sentId) {
         //message initialization
         try {
             var message = {};
@@ -93,15 +105,22 @@ var Sender = function() {
             Utils.PrintError(err);
             process.exit(Utils.ReturnCodes.Error);
         }
-    };
+    }
 
-    this.sendMessage = function(context) {
+    /**
+    * @method sendMessage
+    * @private
+    * @description method send message
+    * @param {object} context - event context
+    * @memberof Sender
+    */
+    function sendMessage(context) {
         if (options.duration > 0) {
-            context.container.NextRequest(context);
+            nextRequest(context);
         } else {
             while (context.container.sent < options.count) {
                 context.container.sent++;
-                var message = context.container.createMessage(options, context.container.sent - 1);
+                var message = createMessage(options, context.container.sent - 1);
 
                 if (options.anonymous) {
                     context.connection.send(message);
@@ -116,12 +135,19 @@ var Sender = function() {
                 }
             }
         }
-    };
+    }
 
-    //scheduled sending messages
-    this.NextRequest = function(context) {
+    /**
+    * @method nextRequest
+    * @private
+    * @description create message dict
+    * @param {object} options - sender client options
+    * @param {int} sentId - index of message
+    * @memberof Sender
+    */
+    function nextRequest(context) {
         context.container.sent++;
-        var message = context.container.createMessage(options, context.container.confirmed);
+        var message = createMessage(options, context.container.confirmed);
 
         if (options.anonymous) {
             context.connection.send(message);
@@ -137,15 +163,15 @@ var Sender = function() {
 
         if (context.container.confirmed < options.count) {
             var timeout = Utils.CalculateDelay(options.count, options.duration);
-            context.container.timer_task = setTimeout(context.container.NextRequest, timeout, context);
+            context.container.timer_task = setTimeout(nextRequest, timeout, context);
         } else {
             clearTimeout(context.container.timer_task);
         }
-    };
+    }
 
     //send messages
     this.on('sendable', function(context) {
-        context.container.sendMessage(context);
+        sendMessage(context);
     });
 
     //on accept message
@@ -207,7 +233,13 @@ var Sender = function() {
         }
     });
 
-    //public run method execute send
+    /**
+    * @function Run
+    * @public
+    * @description Run sender client
+    * @param {object} opts - sender client options
+    * @memberof Sender
+    */
     this.Run = function(opts) {
         if(opts !== undefined) {
             options = opts;
@@ -225,7 +257,13 @@ var Sender = function() {
         }
     };
 
-    //public run method for execute browser sending
+    /**
+    * @method WebSocketRun
+    * @public
+    * @description Run sender client with WebSocket
+    * @param {object} opts - sender client options
+    * @memberof Sender
+    */
     this.WebSocketRun = function(opts) {
         if(opts !== undefined) {
             options = opts;
@@ -239,4 +277,10 @@ var Sender = function() {
 };
 Sender.prototype = Object.create(container);
 ///////////////////////////////////////////////////////////////////////////////////
+/**
+ * @module Sender
+ * @description Sender client class
+ */
+
+/** sender class */
 exports.Sender = Sender;

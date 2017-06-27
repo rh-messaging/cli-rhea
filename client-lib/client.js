@@ -19,6 +19,11 @@ var ConnectorClient = require('../client-lib/connectorClient.js').Connector;
 var ReceiverClient = require('../client-lib/receiverClient.js').Receiver;
 var SenderClient = require('../client-lib/senderClient.js').Sender;
 
+/**
+ * @member {object} Options
+ * @memberof client
+ * Options dict for all client types
+ */
 var Options = {
     //connection opts
     connUrls: undefined,
@@ -106,8 +111,17 @@ var Options = {
     anonymous: false
 };
 
+/**
+ * @module client
+ * @description Client types and options
+ */
+
+/** sender client instance*/
 exports.SenderClient = new SenderClient();
+/** receiver client instance */
 exports.ReceiverClient = new ReceiverClient();
+/** connector client instance */
 exports.ConnectorClient = new ConnectorClient();
+/** options dict */
 exports.Options = Options;
 

@@ -20,7 +20,10 @@ var filters = require('rhea/lib/filter.js');
 var Utils = require('./utils.js');
 var fs = require('fs');
 
-//static class Core client contains help method for clients
+/**
+ * @namespace CoreClient
+ * @description Support methods for all client types
+ */
 var CoreClient = function () {};
 
 CoreClient.timeout;
@@ -30,6 +33,14 @@ CoreClient.arrHosts = [];
 CoreClient.arrPorts = [];
 CoreClient.logstats;
 
+/**
+ * @method CoreClient.Close
+ * @static
+ * @description Close connection, sender link or receiver link, or schedule closing
+ * @param {object} context - event context
+ * @param {integer} closeSleep - time in ms for scheduling closing, undefined = close now
+ * @param {boolean} isListener - true if container running as listener
+ */
 CoreClient.Close = function (context, closeSleep, isListener) {
     if(closeSleep) {
         CoreClient.TimeoutClose(context, closeSleep, isListener);
@@ -49,6 +60,12 @@ CoreClient.Close = function (context, closeSleep, isListener) {
     }
 };
 
+/**
+ * @method CoreClient.Reply
+ * @static
+ * @description Reply to address in reply-to
+ * @param {object} context - event context
+ */
 CoreClient.Reply = function (context) {
     var sender = context.connection.open_sender({target: {address: context.message['reply_to']},
         autosettle: false});
@@ -56,6 +73,14 @@ CoreClient.Reply = function (context) {
     sender.set_drained(true);
 };
 
+/**
+ * @method CoreClient.TimeoutClose
+ * @static
+ * @description Schedule closing connection, sender link or receiver link
+ * @param {object} context - event context
+ * @param {integer} timeout - time in ms for scheduling closing
+ * @param {boolean} isListener - true if container running as listener
+ */
 CoreClient.TimeoutClose = function (context, timeout, isListener) {
     if(timeout > 0) {
         CoreClient.timeout = timeout;
@@ -66,6 +91,12 @@ CoreClient.TimeoutClose = function (context, timeout, isListener) {
     }
 };
 
+/**
+ * @method CoreClient.OnDisconnect
+ * @static
+ * @description handler for Disconnect event
+ * @param {object} context - event context
+ */
 CoreClient.OnDisconnect = function (context) {
     CoreClient.CancelTimeout();
     CoreClient.reconnectCount++;
@@ -74,6 +105,12 @@ CoreClient.OnDisconnect = function (context) {
     }
 };
 
+/**
+ * @method CoreClient.OnConnError
+ * @static
+ * @description handler for ConnectionError event
+ * @param {object} context - event context
+ */
 CoreClient.OnConnError = function (context) {
     if(context.connection.get_error().condition !== 'amqp:connection:forced') {
         Utils.PrintError(JSON.stringify(context.connection.get_error()));
@@ -81,23 +118,46 @@ CoreClient.OnConnError = function (context) {
     }
 };
 
+/**
+ * @method CoreClient.OnRejected
+ * @static
+ * @description handler for Rejected event
+ * @param {object} context - event context
+ */
 CoreClient.OnRejected = function (context) {
     Utils.PrintError(context.delivery.remote_state.error.value);
     context.connection.close();
     process.exit(Utils.ReturnCodes.Error);
 };
 
+/**
+ * @method CoreClient.OnReleased
+ * @static
+ * @description handler for Released event
+ * @param {object} context - event context
+ */
 CoreClient.OnReleased = function (context) {
     Utils.PrintError('Message released');
     context.connection.close();
     process.exit(Utils.ReturnCodes.Error);
 };
 
+/**
+ * @method CoreClient.OnProtocolError
+ * @static
+ * @description handler for ProtocolError event
+ * @param {object} context - event context
+ */
 CoreClient.OnProtocolError = function (context) {
     Utils.PrintError(JSON.stringify(context));
     process.exit(Utils.ReturnCodes.Error);
 };
 
+/**
+ * @method CoreClient.RegistryUnhandledError
+ * @static
+ * @description trap enhandled exceptions
+ */
 CoreClient.RegistryUnhandledError = function() {
     process.on('uncaughtException', function(err) {
         // handle the error safely
@@ -106,15 +166,33 @@ CoreClient.RegistryUnhandledError = function() {
     });
 };
 
+/**
+ * @method CoreClient.CancelTimeout
+ * @static
+ * @description cancel scheduled closing
+ */
 CoreClient.CancelTimeout = function () {
     clearTimeout(CoreClient.timeoutFunction);
 };
 
+/**
+ * @method CoreClient.ResetTimeout
+ * @static
+ * @description reschedule closing of client
+ * @param {object} context - event context
+ * @param {boolean} isListener - true if container is in listener mode
+ */
 CoreClient.ResetTimeout = function (context, isListener) {
     CoreClient.CancelTimeout();
     CoreClient.TimeoutClose(context, CoreClient.timeout, isListener);
 };
 
+/**
+ * @method CoreClient.SetUpSSL
+ * @static
+ * @description set up sll conection options
+ * @param {object} options - dict with client options
+ */
 CoreClient.SetUpSSL = function (options) {
     var sslDict = {};
 
@@ -127,6 +205,12 @@ CoreClient.SetUpSSL = function (options) {
     return sslDict;
 };
 
+/**
+ * @method CoreClient.BuildFailoverHandler
+ * @static
+ * @description set up failover connection options
+ * @param {object} options - dict with client options
+ */
 CoreClient.BuildFailoverHandler = function(options) {
     CoreClient.arrHosts.push(options.url);
     CoreClient.arrPorts.push(options.port);
@@ -149,7 +233,12 @@ CoreClient.BuildFailoverHandler = function(options) {
     }
 };
 
-//connection options
+/**
+ * @method CoreClient.BuildConnectionOptionsDict
+ * @static
+ * @description set up connection options
+ * @param {object} options - dict with client options
+ */
 CoreClient.BuildConnectionOptionsDict = function(options) {
     var connectionDict = {};
 
@@ -196,6 +285,12 @@ CoreClient.BuildConnectionOptionsDict = function(options) {
     return connectionDict;
 };
 
+/**
+ * @method CoreClient.BuildReceiverOptionsDict
+ * @static
+ * @description set up receiver link options
+ * @param {object} options - dict with client options
+ */
 CoreClient.BuildReceiverOptionsDict = function(options) {
     var receiverOptions = {};
     var source = {};
@@ -213,6 +308,12 @@ CoreClient.BuildReceiverOptionsDict = function(options) {
     return receiverOptions;
 };
 
+/**
+ * @method CoreClient.BuildSenderOptionsDict
+ * @static
+ * @description set up sender link options
+ * @param {object} options - dict with client options
+ */
 CoreClient.BuildSenderOptionsDict = function(options) {
     var senderOptions = {};
     var target = {};
@@ -230,11 +331,24 @@ CoreClient.BuildSenderOptionsDict = function(options) {
     return senderOptions;
 };
 
+/**
+ * @method CoreClient.BuildWebSocketConnString
+ * @static
+ * @description create websocker connection string
+ * @param {object} options - dict with client options
+ */
 CoreClient.BuildWebSocketConnString = function(options) {
     var connTemplate = 'ws://%BROKER:%PORT';
     return connTemplate.replace('%BROKER', options.url).replace('%PORT', options.port);
 };
 
+/**
+ * @method CoreClient.BuildWebSocketConnectionDict
+ * @static
+ * @description set up websocker connection options
+ * @param {object} ws - instance of websocket
+ * @param {object} options - dict with client options
+ */
 CoreClient.BuildWebSocketConnectionDict = function(ws, options) {
     var connectionDict = {};
 
@@ -268,4 +382,11 @@ CoreClient.BuildWebSocketConnectionDict = function(ws, options) {
 };
 
 //===========================================================================
+
+/**
+ * @module CoreClient
+ * @description CoreClient namespace with client functions
+ */
+
+/** CoreClient namespace */
 exports.CoreClient = CoreClient;
