@@ -229,7 +229,7 @@ var Sender = function() {
     //on connection open
     this.on('connection_open', function(context) {
         if (options.anonymous) {
-            context.container.sendMessage(context);
+            sendMessage(context);
         }
     });
 
@@ -272,7 +272,7 @@ var Sender = function() {
 
         var ws = this.websocket_connect(WebSocket);
         this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
-          .open_sender(options.address);
+            .open_sender(options.address);
     };
 };
 Sender.prototype = Object.create(container);
