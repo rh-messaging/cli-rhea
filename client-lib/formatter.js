@@ -73,6 +73,59 @@ var RemoveIDPrefix = function(idString) {
 };
 
 /**
+ * @function RemoveTopicPrefix
+ * @description remove topic:// prefix
+ * @param {string} address - string to remove prefix
+ * @return {string} address without topic:// prefix
+ * @memberof formatter
+ */
+var RemoveTopicPrefix = function(address) {
+    if (address)
+        return address.replace('topic://', '');
+    return address;
+};
+
+/**
+ * @function RoundFloatNumber
+ * @description Round float number
+ * @param {number} number - number for rounding
+ * @return {number} roundet value
+ * @memberof formatter
+ */
+var RoundFloatNumber = function(number) {
+    return Math.round(number*100000)/100000;
+};
+
+/**
+ * @function FixInteropValues
+ * @description fix values for interop output print
+ * @param {Object} values - object for fixing (Dict, Array, Number, String)
+ * @return {Object} fixed object
+ * @memberof formatter
+ */
+var FixInteropValues = function(values) {
+    if(Array.isArray(values)) {
+        for(var i = 0; i < values.length; i++) {
+            values[i] = FixInteropValues(values[i]);
+        }
+        return values;
+    }else if(values instanceof Object) {
+        for (var key in values) {
+            if (values.hasOwnProperty(key)) {
+                values[key] = FixInteropValues(values[key]);
+            }
+        }
+        return values;
+    }else if(typeof values === 'number') {
+        return RoundFloatNumber(values);
+    }else if(typeof values === 'boolean') {
+        return values;
+    }else{
+        return values;
+    }
+};
+
+/**
  * @function RenameKeysInDictInterop
  * @description format message dict for interop
  * @param {object} dict - message dict from context.message
@@ -91,7 +144,7 @@ var RenameKeysInDictInterop = function (dict) {
     //amqp properties
     workDict['id'] = RemoveIDPrefix(dict['message_id']);
     workDict['user-id'] = CastUserId(dict['user_id']);
-    workDict['address'] = dict['to'];
+    workDict['address'] = RemoveTopicPrefix(dict['to']);
     workDict['subject'] = dict['subject'];
     workDict['reply-to'] = dict['reply_to'];
     workDict['correlation-id'] = RemoveIDPrefix(dict['correlation_id']);
@@ -104,10 +157,10 @@ var RenameKeysInDictInterop = function (dict) {
     workDict['reply-to-group-id'] = dict['reply_to_group_id'];
 
     //application properties
-    workDict['properties'] = dict['application_properties'];
+    workDict['properties'] = FixInteropValues(dict['application_properties']);
 
     //application data
-    workDict['content'] = dict['body'];
+    workDict['content'] = FixInteropValues(dict['body']);
 
     //message anotations
     //workDict['message-annotations'] = dict['message_annotations'];
