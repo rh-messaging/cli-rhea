@@ -80,14 +80,41 @@ var Receiver = function () {
         }
 
         //add credit for drain
-        if ((context.container.expected === 0) && (context.container.received === context.container.batch)) {
+        if (!(options.duration > 0) &&
+                (context.container.expected === 0) &&
+                (context.container.received === context.container.batch)) {
             context.container.received = 0;
             context.receiver.add_credit(context.container.batch);
+        }
+
+        //set up frow credit 1 when receiver is in duration mode
+        if(options.duration > 0) {
+            nextRequest(context);
         }
 
         //reply to
         if(options.processReplyTo) {
             CoreClient.Reply(context);
+        }
+    }
+
+    /**
+    * @method nextRequest
+    * @private
+    * @description advance flow control of receiving messages
+    * @param {object} context - event context
+    * @memberof Receiver
+    */
+    function nextRequest(context) {
+        if (context.container.received < options.count) {
+            var timeout = Utils.CalculateDelay(options.count, options.duration);
+            context.container.timer_task = setTimeout(
+                function(context) {
+                    context.receiver.add_credit(1);
+                }, timeout,
+                context);
+        } else {
+            clearTimeout(context.container.timer_task);
         }
     }
 
@@ -102,6 +129,11 @@ var Receiver = function () {
             context.receiver.flow(context.container.batch);
             if (options.timeout <= 0)
                 context.receiver.drain = true;
+        }
+
+        //add credit 1 for receive first message when receiver is in duration mode
+        if(options.duration > 0) {
+            context.receiver.add_credit(1);
         }
 
         //if timeout is set close connection after timeout

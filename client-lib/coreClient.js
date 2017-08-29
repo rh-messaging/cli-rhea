@@ -302,7 +302,7 @@ CoreClient.BuildReceiverOptionsDict = function(options) {
     if (options.action !== 'acknowledge') {
         receiverOptions['autoaccept'] = false;
     }
-    receiverOptions['credit_window'] = (options.recvBrowse || options.count === 0) ? 0 : undefined;  //disable automatic credit windows for recv browse or read all messages from queue
+    receiverOptions['credit_window'] = (options.recvBrowse || options.count === 0 || options.duration > 0) ? 0 : undefined;  //disable automatic credit windows for recv browse or read all messages from queue
     receiverOptions['source'] = source;
 
     return receiverOptions;
