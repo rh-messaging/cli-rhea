@@ -160,13 +160,6 @@ var Sender = function() {
         if (options.logStats === 'endpoints') {
             Utils.PrintStatistic(context);
         }
-
-        if (context.container.confirmed < options.count) {
-            var timeout = Utils.CalculateDelay(options.count, options.duration);
-            context.container.timer_task = setTimeout(nextRequest, timeout, context);
-        } else {
-            clearTimeout(context.container.timer_task);
-        }
     }
 
     //send messages
@@ -181,6 +174,13 @@ var Sender = function() {
             CoreClient.CancelTimeout();
             clearTimeout(context.container.timer_task);
             CoreClient.Close(context, options.closeSleep, false);
+        }else if (options.duration > 0) {
+            if (context.container.confirmed < options.count) {
+                var timeout = Utils.CalculateDelay(options.count, options.duration);
+                context.container.timer_task = setTimeout(nextRequest, timeout, context);
+            } else {
+                clearTimeout(context.container.timer_task);
+            }
         }
     });
 

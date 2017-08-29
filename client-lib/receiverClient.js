@@ -201,7 +201,7 @@ var Receiver = function () {
 
         var ws = this.websocket_connect(WebSocket);
         this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
-          .open_receiver(options.address);
+            .open_receiver(options.address);
     };
 };
 Receiver.prototype = Object.create(container);
