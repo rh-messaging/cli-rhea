@@ -178,7 +178,7 @@ describe('Running bin cmd client', function() {
         verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--log-msgs', 'interop'])]);
     });
     it('Websocket sent messages', function(done) {
-        verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop', '--conn-web-socket'])]);
+        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop', '--conn-web-socket'])]);
     });
     it('Websocket receive messages', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--log-msgs', 'interop', '--conn-web-socket'])]);
