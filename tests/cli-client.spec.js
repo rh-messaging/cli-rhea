@@ -165,15 +165,6 @@ describe('Running bin cmd client', function() {
     it('Connector client help', function(done) {
         verify(done, [example('../bin/connector-client.js', ['--help'])]);
     });
-    it('Sender client base run without reconnect', function(done) {
-        verify(done, [example('../bin/sender-client.js', ['--conn-reconnect', false])]);
-    });
-    it('Receiver client base run without reconnect', function(done) {
-        verify(done, [example('../bin/receiver-client.js', ['--conn-reconnect', false])]);
-    });
-    it('Connector client base run without reconnect', function(done) {
-        verify(done, [example('../bin/connector-client.js', ['--conn-reconnect', false])]);
-    });
     it('Send bare messages', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop'])]);
     });
@@ -185,5 +176,11 @@ describe('Running bin cmd client', function() {
     });
     it('Receive rest messages', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--log-msgs', 'interop'])]);
+    });
+    it('Websocket sent messages', function(done) {
+        verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop', '--conn-web-socket'])]);
+    });
+    it('Websocket receive messages', function(done) {
+        verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--log-msgs', 'interop', '--conn-web-socket'])]);
     });
 });
