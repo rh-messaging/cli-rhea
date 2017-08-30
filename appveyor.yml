@@ -10,7 +10,7 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - npm install rhea mocha chai yargs@7.1.0 child_process assert string-format-js
+  - npm install rhea mocha chai yargs@7.1.0 child_process assert string-format-js ws@1.1.1
 
 # Post-install test scripts.
 test_script:
@@ -18,7 +18,11 @@ test_script:
   - node --version
   - npm --version
   # run tests
-
+  - ps: Invoke-webrequest "https://www.apache.org/dyn/closer.cgi?filename=activemq/activemq-artemis/2.1.0/apache-artemis-2.1.0-bin.zip&action=download" -OutFile ".\apache-artemis-2.1.0-bin.zip"
+7z x apache-artemis-2.1.0-bin.zip
+  - ps: .\apache-artemis-2.1.0\bin\artemis create amq-server --user=admin --password=admin --nio --allow-anonymous
+  - ps: Start-process -FilePath .\amq-server\bin\artemis.cmd -ArgumentList ('run') -NoNewWindow
+  - ps: Start-Sleep -Seconds 5
   - npm run-script test
 
 # Don't actually build.

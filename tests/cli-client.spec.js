@@ -174,4 +174,16 @@ describe('Running bin cmd client', function() {
     it('Connector client base run without reconnect', function(done) {
         verify(done, [example('../bin/connector-client.js', ['--conn-reconnect', false])]);
     });
+    it('Send bare messages', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop'])]);
+    });
+    it('Receive three messages', function(done) {
+        verify(done, [example('../bin/receiver-client.js', ['--count', 3, '--log-msgs', 'interop'])]);
+    });
+    it('Browse rest messages', function(done) {
+        verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--recv-browse', '--log-msgs', 'interop'])]);
+    });
+    it('Receive rest messages', function(done) {
+        verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--log-msgs', 'interop'])]);
+    });
 });
