@@ -45,29 +45,14 @@ describe('Client import', function() {
             expect(client.SenderClient.Run).to.be.a('function');
         });
     });
-    describe('"SenderClient.WebSocketRun"', function() {
-        it('should export a function', function() {
-            expect(client.SenderClient.WebSocketRun).to.be.a('function');
-        });
-    });
     describe('"ReceiverClient.Run"', function() {
         it('should export a function', function() {
             expect(client.ReceiverClient.Run).to.be.a('function');
         });
     });
-    describe('"ReceiverClient.WebSocketRun"', function() {
-        it('should export a function', function() {
-            expect(client.ReceiverClient.WebSocketRun).to.be.a('function');
-        });
-    });
     describe('"ConnectorClient.Run"', function() {
         it('should export a function', function() {
             expect(client.ConnectorClient.Run).to.be.a('function');
-        });
-    });
-    describe('"ConnectorClient.WebSocketRun"', function() {
-        it('should export a function', function() {
-            expect(client.ConnectorClient.WebSocketRun).to.be.a('function');
         });
     });
 });

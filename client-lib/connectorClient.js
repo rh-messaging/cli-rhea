@@ -85,36 +85,19 @@ Connector.PrintOutput = function() {
 };
 
 /**
- * run method for amqp
- * @method Run
- * @memberof Connector
- * @param {Object} opts
- */
-Connector.prototype.Run = function(opts) {
-    this.RunConnector(opts, false);
-};
-
-
-/**
- * run method for amqp over websocker
- * @method WebSocketRun
- * @param {Object} opts
- * @memberof Connector
- */
-Connector.prototype.WebSocketRun = function(opts) {
-    this.RunConnector(opts, true);
-};
-
-/**
- * run method
+ * run method of connector
  * @method RunConnector
  * @param {Object} opts
- * @param {boolean} wsEnabled
  * @memberof Connector
  */
-Connector.prototype.RunConnector = function(opts, wsEnabled) {
+Connector.prototype.Run = function(opts) {
     if(opts !== undefined) {
         options = opts;
+    }
+
+    // if running in browser setup websocket auto.
+    if(typeof window !== 'undefined') {
+        options.websocket = true;
     }
 
     this.address = options.address ? options.address : 'test_connection';
@@ -141,8 +124,8 @@ Connector.prototype.RunConnector = function(opts, wsEnabled) {
             });
 
             var connectionParams;
-            if(wsEnabled) {
-                connectionParams = CoreClient.BuildWebSocketConnectionDict(this.containers[i].websocket_connect(WebSocket), options);
+            if(options.websocket) {
+                connectionParams = CoreClient.BuildWebSocketConnectionDict(this.containers[i].websocket_connect(CoreClient.GetWebSocketObject()), options);
             }else {
                 connectionParams = CoreClient.BuildConnectionOptionsDict(options);
             }

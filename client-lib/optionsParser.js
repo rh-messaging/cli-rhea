@@ -36,6 +36,7 @@ var ConnectionOptions = function () {
     this.sslTrustStore;
     this.sslVerifyPeer;
     this.sslVerifyPeerName;
+    this.websocket;
     this.arrHosts = [];
     this.arrPorts = [];
 };
@@ -62,6 +63,7 @@ ConnectionOptions.prototype.ParseConnectionOptions = function() {
             'conn-ssl-verify-peer':         { default: false, describe: 'verifies server certificate, conn-ssl-certificate and trusted db path needs to be specified (PEM format)', type: 'boolean'},
             'conn-ssl-verify-peer-name':    { default: false, describe: 'verifies connection url against server hostname', type: 'boolean'},
             'conn-max-frame-size':          { default: 4294967295, describe: 'defines max frame size for connection', type: 'uint'},
+            'conn-web-socket':              { default: false, describe: 'use websocket as transport layer', type: ['boolean', 'string']}
         })
         .strict()
         .help('help')
@@ -84,6 +86,11 @@ ConnectionOptions.prototype.ParseConnectionOptions = function() {
     this.sslVerifyPeer = args['conn-ssl-verify-peer'];
     this.sslVerifyPeerName = args['conn-ssl-verify-peer-name'];
     this.frameSize = args['conn-max-frame-size'];
+    if (typeof args['conn-web-socket'] === 'boolean') {
+        this.websocket = args['conn-web-socket'];
+    }else{
+        this.websocket = args['conn-web-socket'].toUpperCase() === 'TRUE';
+    }
 };
 
 

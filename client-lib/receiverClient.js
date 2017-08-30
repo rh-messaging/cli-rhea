@@ -197,43 +197,37 @@ var Receiver = function () {
             options = opts;
         }
 
+        // if running in browser setup websocket auto.
+        if(typeof window !== 'undefined') {
+            options.websocket = true;
+        }
+
         this.Init();
 
         try{
-            if(!options.recvListen) {
-                //run receiver
-                this.connect(CoreClient.BuildConnectionOptionsDict(options))
-                    .open_receiver(CoreClient.BuildReceiverOptionsDict(options));
-            }else{
-                //run local listener
-                options.closeSleep = 1000; //add here 1000ms wait for accept last message
-                this.listen({port: options.recvListenPort});
-                if(options.timeout > 0) {
-                    CoreClient.TimeoutClose(null, options.timeout, options.recvListen);
+            if(options.websocket) {
+                var ws = this.websocket_connect(CoreClient.GetWebSocketObject());
+                this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
+                    .open_receiver(options.address);
+            }else {
+                if(!options.recvListen) {
+                    //run receiver
+                    this.connect(CoreClient.BuildConnectionOptionsDict(options))
+                        .open_receiver(CoreClient.BuildReceiverOptionsDict(options));
+                }else {
+                    //run local listener
+                    options.closeSleep = 1000; //add here 1000ms wait for accept last message
+                    this.listen({port: options.recvListenPort});
+                    if(options.timeout > 0) {
+                        CoreClient.TimeoutClose(null, options.timeout, options.recvListen);
+                    }
                 }
             }
+            
         }catch(err) {
             Utils.PrintError(err);
             process.exit(Utils.ReturnCodes.Error);
         }
-    };
-
-    /**
-    * @method WebSocketRun
-    * @description public method for run receiver client with websocket
-    * @param {object} opts - options dict
-    * @memberof Receiver
-    */
-    //public run method for browser running
-    this.WebSocketRun = function(opts) {
-        if(opts !== undefined) {
-            options = opts;
-        }
-        this.Init();
-
-        var ws = this.websocket_connect(WebSocket);
-        this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
-            .open_receiver(options.address);
     };
 };
 Receiver.prototype = Object.create(container);

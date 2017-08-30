@@ -245,34 +245,28 @@ var Sender = function() {
             options = opts;
         }
         this.ts = Utils.GetTime();
+
+        // if running in browser setup websocket auto.
+        if(typeof window !== 'undefined') {
+            options.websocket = true;
+        }
+
         try {
             //run sender client
-            var connection = this.connect(CoreClient.BuildConnectionOptionsDict(options));
-            if (!options.anonymous) {
-                connection.attach_sender(CoreClient.BuildSenderOptionsDict(options));
+            if(options.websocket) {
+                var ws = this.websocket_connect(CoreClient.GetWebSocketObject());
+                this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
+                    .open_sender(options.address);
+            } else {
+                var connection = this.connect(CoreClient.BuildConnectionOptionsDict(options));
+                if (!options.anonymous) {
+                    connection.attach_sender(CoreClient.BuildSenderOptionsDict(options));
+                }
             }
         } catch (err) {
             Utils.PrintError(err);
             process.exit(Utils.ReturnCodes.Error);
         }
-    };
-
-    /**
-    * @method WebSocketRun
-    * @public
-    * @description Run sender client with WebSocket
-    * @param {object} opts - sender client options
-    * @memberof Sender
-    */
-    this.WebSocketRun = function(opts) {
-        if(opts !== undefined) {
-            options = opts;
-        }
-        this.ts = Utils.GetTime();
-
-        var ws = this.websocket_connect(WebSocket);
-        this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
-            .open_sender(options.address);
     };
 };
 Sender.prototype = Object.create(container);

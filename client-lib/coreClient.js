@@ -343,6 +343,18 @@ CoreClient.BuildWebSocketConnString = function(options) {
 };
 
 /**
+ * @method CoreClient.GetWebSocketObject
+ * @static
+ * @description return websocket obejct for connection for browser of nodejs
+ */
+CoreClient.GetWebSocketObject = function (options) {
+    if(typeof window === 'undefined') {
+        return require('ws');
+    }
+    return window.WebSocket;
+};
+
+/**
  * @method CoreClient.BuildWebSocketConnectionDict
  * @static
  * @description set up websocker connection options
@@ -359,7 +371,7 @@ CoreClient.BuildWebSocketConnectionDict = function(ws, options) {
     connectionDict['username'] = options.username;
     connectionDict['password'] = options.password;
 
-     //reconnect
+    //reconnect
     if(options.reconnect) {
         if (options.reconnectLimit) {
             connectionDict['reconnect_limit'] = options.reconnectLimit;
