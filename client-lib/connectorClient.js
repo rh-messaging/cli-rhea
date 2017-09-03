@@ -23,7 +23,6 @@ var Options = require('./optionsParser.js').ConnectorOptions;
 if (typeof window === 'undefined') {
     var options = new Options();
     options.ParseArguments();
-    CoreClient.RegistryUnhandledError();
     CoreClient.logStats = options.logStats;
     Utils.SetUpClientLogging(options.logLib);
 }
@@ -107,19 +106,19 @@ Connector.prototype.Run = function(opts) {
         try{
             this.containers[i] = container.create_container();
 
-            this.containers[i].on('connection_open', function(context) {
+            this.containers[i].on('connection_open', function() {
                 results.connections.open += 1;
             });
 
-            this.containers[i].on('connection_error', function(context) {
+            this.containers[i].on('connection_error', function() {
                 results.connections.error += 1;
             });
 
-            this.containers[i].on('receiver_open', function(context) {
+            this.containers[i].on('receiver_open', function() {
                 results.receivers.open += 1;
             });
 
-            this.containers[i].on('sender_open', function(context) {
+            this.containers[i].on('sender_open', function() {
                 results.senders.open += 1;
             });
 
@@ -139,7 +138,7 @@ Connector.prototype.Run = function(opts) {
     //check and create sessions receivers senders
     if(options.objCtrl && options.objCtrl.indexOf('ESR') > -1) {
         //create and open sessions
-        for(var i = 0; i < options.count; i++) {
+        for(i = 0; i < options.count; i++) {
             try{
                 this.sessions[i] = this.connections[i].create_session();
                 this.sessions[i].begin();

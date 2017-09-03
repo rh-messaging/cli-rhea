@@ -47,14 +47,15 @@ var Options = {
         var regex = /(\w+)(:*)(\w*)@/gi;
         var regexIpv6 = /\[(.*?)\]/gi;
         var res = regexIpv6.test(brokerUrl) ? brokerUrl.match(regexIpv6)[0].replace(/\[/, '').replace(/\]/,'') : null;
+        var splitAdd;
         if(regex.test(brokerUrl)) {
-            var splitAdd = brokerUrl.split('@');
+            splitAdd = brokerUrl.split('@');
             this.username = splitAdd[0].split(':')[0] ? splitAdd[0].split(':')[0] : '';
             this.password = splitAdd[0].split(':')[1] ? splitAdd[0].split(':')[1] : '';
             this.url = res ? res : splitAdd[1].split(':')[0];
             this.port = splitAdd[1].split(':').pop();
         }else{
-            var splitAdd = brokerUrl.split('@');
+            splitAdd = brokerUrl.split('@');
             if(splitAdd.length > 1) {
                 this.url = res ? res : splitAdd[1].split(':')[0];
                 this.port = (splitAdd[1].split(':').length > 1) ? splitAdd[1].split(':').pop() : 5672;

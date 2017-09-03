@@ -24,7 +24,6 @@ require('string-format-js');
 if (typeof window === 'undefined') {
     var options = new Options();
     options.ParseArguments();
-    CoreClient.RegistryUnhandledError();
     CoreClient.logStats = options.logStats;
     Utils.SetUpClientLogging(options.logLib);
 }
@@ -102,8 +101,7 @@ var Sender = function() {
 
             return message;
         } catch (err) {
-            Utils.PrintError(err);
-            process.exit(Utils.ReturnCodes.Error);
+            throw new Utils.ErrorHandler(err);
         }
     }
 
@@ -264,8 +262,7 @@ var Sender = function() {
                 }
             }
         } catch (err) {
-            Utils.PrintError(err);
-            process.exit(Utils.ReturnCodes.Error);
+            throw new Utils.ErrorHandler(err);
         }
     };
 };

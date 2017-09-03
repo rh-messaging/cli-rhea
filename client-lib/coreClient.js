@@ -55,7 +55,7 @@ CoreClient.Close = function (context, closeSleep, isListener) {
         context.connection.close();
 
         if(isListener) {
-            process.exit(Utils.ReturnCodes.OK);
+            return;
         }
     }
 };
@@ -101,7 +101,7 @@ CoreClient.OnDisconnect = function (context) {
     CoreClient.CancelTimeout();
     CoreClient.reconnectCount++;
     if(CoreClient.reconnectCount === context.connection.options.reconnect_limit) {
-        process.exit(Utils.ReturnCodes.Error);
+        throw new Utils.ErrorHandler('Disconnect');
     }
 };
 
@@ -113,8 +113,7 @@ CoreClient.OnDisconnect = function (context) {
  */
 CoreClient.OnConnError = function (context) {
     if(context.connection.get_error().condition !== 'amqp:connection:forced') {
-        Utils.PrintError(JSON.stringify(context.connection.get_error()));
-        process.exit(Utils.ReturnCodes.Error);
+        throw new Utils.ErrorHandler(JSON.stringify(context.connection.get_error));
     }
 };
 
@@ -125,9 +124,8 @@ CoreClient.OnConnError = function (context) {
  * @param {object} context - event context
  */
 CoreClient.OnRejected = function (context) {
-    Utils.PrintError(context.delivery.remote_state.error.value);
     context.connection.close();
-    process.exit(Utils.ReturnCodes.Error);
+    throw new Utils.ErrorHandler(context.delivery.remote_state.error.value);
 };
 
 /**
@@ -137,9 +135,8 @@ CoreClient.OnRejected = function (context) {
  * @param {object} context - event context
  */
 CoreClient.OnReleased = function (context) {
-    Utils.PrintError('Message released');
     context.connection.close();
-    process.exit(Utils.ReturnCodes.Error);
+    throw new Utils.ErrorHandler('Message released');
 };
 
 /**
@@ -149,21 +146,7 @@ CoreClient.OnReleased = function (context) {
  * @param {object} context - event context
  */
 CoreClient.OnProtocolError = function (context) {
-    Utils.PrintError(JSON.stringify(context));
-    process.exit(Utils.ReturnCodes.Error);
-};
-
-/**
- * @method CoreClient.RegistryUnhandledError
- * @static
- * @description trap enhandled exceptions
- */
-CoreClient.RegistryUnhandledError = function() {
-    process.on('uncaughtException', function(err) {
-        // handle the error safely
-        Utils.PrintError(err);
-        process.exit(Utils.ReturnCodes.Error);
-    });
+    throw new Utils.ErrorHandler(JSON.stringify(context));
 };
 
 /**
@@ -228,8 +211,7 @@ CoreClient.BuildFailoverHandler = function(options) {
                 port: CoreClient.arrPorts[CoreClient.reconnectCount % CoreClient.arrPorts.length]};
         };
     }catch(err) {
-        Utils.PrintError('conn-urls has wrong format, try help fo show how use it');
-        process.exit(Utils.ReturnCodes.Error_ARGS);
+        throw new Utils.ErrorHandler('conn-urls has wrong format, try help fo show how use it');
     }
 };
 
@@ -294,15 +276,15 @@ CoreClient.BuildConnectionOptionsDict = function(options) {
 CoreClient.BuildReceiverOptionsDict = function(options) {
     var receiverOptions = {};
     var source = {};
-    source['address'] = options.address;                                                            //address of queue
-    source['distribution_mode'] = options.recvBrowse ? 'copy' : '';                                 //message browse options
-    source['durable'] = options.durable;                                                            //durable subscription
-    source['filter'] = (options.msgSelector) ? filters.selector(options.msgSelector) : '';          //message selector options
+    source['address'] = options.address; //address of queue
+    source['distribution_mode'] = options.recvBrowse ? 'copy' : ''; //message browse options
+    source['durable'] = options.durable; //durable subscription
+    source['filter'] = (options.msgSelector) ? filters.selector(options.msgSelector) : ''; //message selector options
 
     if (options.action !== 'acknowledge') {
         receiverOptions['autoaccept'] = false;
     }
-    receiverOptions['credit_window'] = (options.recvBrowse || options.count === 0 || options.duration > 0) ? 0 : undefined;  //disable automatic credit windows for recv browse or read all messages from queue
+    receiverOptions['credit_window'] = (options.recvBrowse || options.count === 0 || options.duration > 0) ? 0 : undefined; //disable automatic credit windows for recv browse or read all messages from queue
     receiverOptions['source'] = source;
 
     return receiverOptions;
@@ -347,8 +329,9 @@ CoreClient.BuildWebSocketConnString = function(options) {
  * @static
  * @description return websocket obejct for connection for browser of nodejs
  */
-CoreClient.GetWebSocketObject = function (options) {
+CoreClient.GetWebSocketObject = function () {
     if(typeof window === 'undefined') {
+        /* eslint-disable global-require */
         return require('ws');
     }
     return window.WebSocket;

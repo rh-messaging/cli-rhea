@@ -149,14 +149,15 @@ BasicOptions.prototype.ParseBasic = function() {
     var regex = /(\w+)(:*)(\w*)@/gi;
     var regexIpv6 = /\[(.*?)\]/gi;
     var res = regexIpv6.test(add) ? add.match(regexIpv6)[0].replace(/\[/, '').replace(/\]/,'') : null;
+    var splitAdd;
     if(regex.test(add)) {
-        var splitAdd = add.split('@');
+        splitAdd = add.split('@');
         this.username = splitAdd[0].split(':')[0] ? splitAdd[0].split(':')[0] : '';
         this.password = splitAdd[0].split(':')[1] ? splitAdd[0].split(':')[1] : '';
         this.url = res ? res : splitAdd[1].split(':')[0];
         this.port = splitAdd[1].split(':').pop();
     }else{
-        var splitAdd = add.split('@');
+        splitAdd = add.split('@');
         if(splitAdd.length > 1) {
             this.url = res ? res : splitAdd[1].split(':')[0];
             this.port = (splitAdd[1].split(':').length > 1) ? splitAdd[1].split(':').pop() : 5672;
@@ -435,19 +436,21 @@ SenderOptions.prototype.ParseArguments = function() {
 
     this.contentType = args['content-type'];
     this.capacity = args['capacity'];
+    var pair;
+    var i;
 
     if((typeof args['msg-property']) === 'object') {
-        for(var i = 0; i < args['msg-property'].length; i++) {
-            var pair = this.ParseMapItem(args['msg-property'][i]);
+        for(i = 0; i < args['msg-property'].length; i++) {
+            pair = this.ParseMapItem(args['msg-property'][i]);
             this.application_properties[pair[0]] = pair[1];
         }
     }else if ((typeof args['msg-property']) === 'string') {
-        var pair = this.ParseMapItem(args['msg-property']);
+        pair = this.ParseMapItem(args['msg-property']);
         this.application_properties[pair[0]] = pair[1];
     }
 
     if((typeof args['msg-content-list-item']) === 'object') {
-        for(var i = 0; i < args['msg-content-list-item'].length; i++) {
+        for(i = 0; i < args['msg-content-list-item'].length; i++) {
             this.listContent[i] = this.ParseDataType(args['msg-content-list-item'][i]);
         }
     }else if ((typeof args['msg-content-list-item']) === 'string') {
@@ -455,22 +458,22 @@ SenderOptions.prototype.ParseArguments = function() {
     }
 
     if((typeof args['msg-content-map-item']) === 'object') {
-        for(var i = 0; i < args['msg-content-map-item'].length; i++) {
-            var pair = this.ParseMapItem(args['msg-content-map-item'][i]);
+        for(i = 0; i < args['msg-content-map-item'].length; i++) {
+            pair = this.ParseMapItem(args['msg-content-map-item'][i]);
             this.mapContent[pair[0]] = pair[1];
         }
     }else if ((typeof args['msg-content-map-item']) === 'string') {
-        var pair = this.ParseMapItem(args['msg-content-map-item']);
+        pair = this.ParseMapItem(args['msg-content-map-item']);
         this.mapContent[pair[0]] = pair[1];
     }
 
     if((typeof args['msg-annotation']) === 'object') {
-        for(var i = 0; i < args['msg-annotation'].length; i++) {
-            var pair = this.ParseMapItem(args['msg-annotation'][i]);
+        for(i = 0; i < args['msg-annotation'].length; i++) {
+            pair = this.ParseMapItem(args['msg-annotation'][i]);
             this.messageAnnotations[pair[0]] = pair[1];
         }
     }else if ((typeof args['msg-annotation']) === 'string') {
-        var pair = this.ParseMapItem(args['msg-annotation']);
+        pair = this.ParseMapItem(args['msg-annotation']);
         this.messageAnnotations[pair[0]] = pair[1];
     }
 };

@@ -292,7 +292,7 @@ var FormatAsUpstream = function (message) {
  * @memberof formatter
  */
 var FormatError = function (errMsg) {
-    return 'ERROR {\'cause\': \'%s\'}'.replace('%s', errMsg);
+    return '{\'cause\': \'%s\'}'.replace('%s', errMsg);
 };
 
 /**

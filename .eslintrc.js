@@ -1,5 +1,7 @@
 module.exports = {
     "env": {
+        "browser": true,
+        "shared-node-browser": true,
         "node": true,
         "es6": true /*for ArrayBuffer and UInt8Array globals*/
     },

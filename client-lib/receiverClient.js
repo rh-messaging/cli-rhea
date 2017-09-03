@@ -23,7 +23,6 @@ var Options = require('./optionsParser.js').ReceiverOptions;
 if (typeof window === 'undefined') {
     var options = new Options();
     options.ParseArguments();
-    CoreClient.RegistryUnhandledError();
     CoreClient.logStats = options.logStats;
     Utils.SetUpClientLogging(options.logLib);
 }
@@ -223,10 +222,8 @@ var Receiver = function () {
                     }
                 }
             }
-            
         }catch(err) {
-            Utils.PrintError(err);
-            process.exit(Utils.ReturnCodes.Error);
+            throw new Utils.ErrorHandler(err);
         }
     };
 };

@@ -183,4 +183,7 @@ describe('Running bin cmd client', function() {
     it('Websocket receive messages', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--log-msgs', 'interop', '--conn-web-socket'])]);
     });
+    it('Send messages sasl', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop'])]);
+    });
 });

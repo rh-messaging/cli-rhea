@@ -65,8 +65,7 @@ var ReadContentFromFile = function (path) {
         var data = fs.readFileSync(path, 'utf8');
         return data;
     }catch(err) {
-        PrintError(err);
-        process.exit(ReturnCodes.Error);
+        throw new ErrorHandler(err);
     }
 };
 
@@ -92,6 +91,7 @@ var CalculateDelay = function(count, duration) {
     if((duration > 0) && (count > 0)) {
         return 1.0 * duration / count;
     }
+    return 0;
 };
 
 /**
@@ -160,10 +160,23 @@ var StringifyStatObject = function(statistics) {
             if ( key.toString().charAt(0) === '_') {
                 return;
             }
+            /* eslint-disable consistent-return */
             return value;
         });
     cache = null;
     return str;
+};
+
+
+/**
+* @function ErrorHandler
+* @description custom print error on output
+* @param {object} message - string error message
+* @memberof Utils
+*/
+var ErrorHandler = function (message) {
+    this.name = 'ERROR';
+    this.message = formatter.FormatError(message);
 };
 
 /////////////////////////////////////////////////////////////////
@@ -188,3 +201,5 @@ exports.SetUpClientLogging = SetUpClientLogging;
 exports.PrintError = PrintError;
 /** function fot print statistics */
 exports.PrintStatistic = PrintStatistic;
+/** Custom error handler */
+exports.ErrorHandler = ErrorHandler;

@@ -1,10 +1,11 @@
 {
   "name": "cli-rhea",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "description": "Client interface built on grs/rhea lib",
   "scripts": {
     "test": "mocha tests/**.spec.js",
-    "browserify": "browserify --ignore ws -r .:cli-rhea -o cli-rhea.js"
+    "browserify": "browserify --ignore ws -r .:cli-rhea -o cli-rhea.js",
+    "lint": "eslint ./client-lib/*.js"
   },
   "repository": {
     "type": "git",
