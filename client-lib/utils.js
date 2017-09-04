@@ -19,22 +19,6 @@ var formatter = require('./formatter.js');
 var fs = require('fs');
 
 /**
-* @member RetunCodes
-* @description Error codes dict
-* @memberof Utils
-*/
-var ReturnCodes = {
-    OK: 0,
-    Error: 1,
-    Error_ARGS: 2,
-    properties: {
-        0: {description: 'results is ok'},
-        1: {description: 'result isn\'t ok'},
-        2: {description: 'wrong parsed arguments'}
-    }
-};
-
-/**
 * @function PrintMessage
 * @description call print method by format type
 * @param {object} message - message dict
@@ -185,8 +169,6 @@ var ErrorHandler = function (message) {
  * @description Module with utils functions
  */
 
-/** return codes */
-exports.ReturnCodes = ReturnCodes;
 /** function for print message */
 exports.PrintMessage = PrintMessage;
 /** function for read content from file*/

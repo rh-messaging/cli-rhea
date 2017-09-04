@@ -1,11 +1,12 @@
 {
   "name": "cli-rhea",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "Client interface built on grs/rhea lib",
   "scripts": {
     "test": "mocha tests/**.spec.js",
     "browserify": "browserify --ignore ws -r .:cli-rhea -o cli-rhea.js",
-    "lint": "eslint ./client-lib/*.js"
+    "lint": "eslint ./client-lib/*.js",
+    "doc": "jsdoc ./client-lib -d ./doc"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,8 @@
     "browserify": "",
     "eslint": "",
     "chai": "",
-    "mocha": ""
+    "mocha": "",
+    "jsdoc": ""
   },
   "author": "David Kornel",
   "homepage": "https://bitbucket.org/david_kornel/cli-rhea#readme"
