@@ -24,8 +24,6 @@ test_script:
   - npm --version
   # run tests
   - npm run-script browserify
-  - npm run-script doc
-  - npm run-script lint
   - npm run-script test
 
 # Don't actually build.
