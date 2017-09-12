@@ -19,9 +19,9 @@
 var Utils = require('./utils.js');
 var CoreClient = require('./coreClient.js').CoreClient;
 var Options = require('./optionsParser.js').ReceiverOptions;
+var options = new Options();
 
 if (typeof window === 'undefined') {
-    var options = new Options();
     options.ParseArguments();
     CoreClient.logStats = options.logStats;
     Utils.SetUpClientLogging(options.logLib);
@@ -192,13 +192,16 @@ var Receiver = function () {
     * @memberof Receiver
     */
     this.Run = function (opts) {
-        if(opts !== undefined) {
+        if(opts !== undefined && Array.isArray(opts)) {
+            options.ParseArguments(opts);
+        }else if(opts !== undefined && typeof opts === 'object') {
             options = opts;
         }
 
         // if running in browser setup websocket auto.
         if(typeof window !== 'undefined') {
             options.websocket = true;
+            options = Options.ParseArguments(opts);
         }
 
         this.Init();

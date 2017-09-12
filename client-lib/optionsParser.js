@@ -19,6 +19,19 @@ var yargs = require('yargs');
 var utils = require('./utils.js');
 
 /**
+ * @function parse
+ * @description help method for parsing
+ * @param {Object} argsProcessor - yargs Processor for parsing
+ * @param {String} data - arguments in string data type
+ */
+var parse = function(argsProcessor, data) {
+    if(data) {
+        return argsProcessor.parse(data);
+    }
+    return argsProcessor.argv;
+};
+
+/**
  * @class ConnectionOptions
  * @description Class to parse and store connection options
  */
@@ -46,8 +59,8 @@ var ConnectionOptions = function () {
  * @description Parse connection options
  * @memberof ConnectionOptions
  */
-ConnectionOptions.prototype.ParseConnectionOptions = function() {
-    var args = yargs
+ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
+    var argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'conn-urls':                    { describe: 'broker adresses and ports for failover conection e.g. ["host1:port", "host2:port"]', type: 'string'},
@@ -66,8 +79,9 @@ ConnectionOptions.prototype.ParseConnectionOptions = function() {
             'conn-web-socket':              { default: false, describe: 'use websocket as transport layer', type: ['boolean', 'string']}
         })
         .strict()
-        .help('help')
-        .argv;
+        .help('help');
+
+    var args = parse(argsProcessor, listArgs);
 
     this.connUrls = args['conn-urls'];
     if (typeof args['conn-reconnect'] === 'boolean') {
@@ -120,8 +134,8 @@ BasicOptions.prototype = Object.create(ConnectionOptions.prototype);
  * @description Parse basic options
  * @memberof BasicOptions
  */
-BasicOptions.prototype.ParseBasic = function() {
-    var args = yargs
+BasicOptions.prototype.ParseBasic = function(listArgs) {
+    var argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'broker':               { alias: 'b', default: 'localhost:5672', describe: 'address of machine with broker (i.e. admin:admin@broker-address:5672)'},
@@ -132,9 +146,9 @@ BasicOptions.prototype.ParseBasic = function() {
             'log-lib':              { describe: 'enable client library logging', choices: ['TRANSPORT_RAW', 'TRANSPORT_FRM', 'TRANSPORT_DRV']},
             'log-stats':            { describe: 'report various statistic/debug information', choices: ['endpoints']},
             'link-durable':         { default: false, describe: 'durable link subscription', type: 'boolean'},
-        })
-        .argv;
-    this.ParseConnectionOptions();
+        });
+    var args = parse(argsProcessor, listArgs);
+    this.ParseConnectionOptions(listArgs);
 
     this.address = args['address'];
     this.count = args['count'];
@@ -189,17 +203,17 @@ SenderReceiverOptions.prototype = Object.create(BasicOptions.prototype);
  * @description Parse sender and receiver together options
  * @memberof SenderReceiverOptions
  */
-SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function() {
-    var args = yargs
+SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function(listArgs) {
+    var argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'duration':                 { default: 0, describe: 'duration of sending or receiving messages', type: 'uint'},
             'log-msgs':                 { describe: 'format of messages', choices: ['dict', 'interop', 'body', 'upstream']},
             'link-at-most-once':        { default: false, describe: 'best-effort delivery', type: 'boolean'},
             'link-at-least-once':       { default: false, describe: 'reliable delivery', type: 'boolean'},
-        })
-        .argv;
-    this.ParseBasic();
+        });
+    var args = parse(argsProcessor, listArgs);
+    this.ParseBasic(listArgs);
 
     this.linkAtMostOnce = args['link-at-most-once'];
     this.linkAtLeastOnce = args['link-at-least-once'];
@@ -226,14 +240,14 @@ ConnectorOptions.prototype = Object.create(BasicOptions.prototype);
  * @description Parse ConnectorClient options
  * @memberof ConnectorOptions
  */
-ConnectorOptions.prototype.ParseArguments = function() {
-    var args = yargs
+ConnectorOptions.prototype.ParseArguments = function(listArgs) {
+    var argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'obj-ctrl': { default: 'C', describe: 'Optional creation object control based on <object-ids>, syntax C/E/S/R stands for Connection, sEssion, Sender, Receiver'},
-        })
-        .argv;
-    this.ParseBasic();
+        });
+    var args = parse(argsProcessor, listArgs);
+    this.ParseBasic(listArgs);
 
     this.objCtrl = args['obj-ctrl'];
 };
@@ -263,8 +277,8 @@ ReceiverOptions.prototype = Object.create(SenderReceiverOptions.prototype);
  * @description Parse ReceiverClient options
  * @memberof ReceiverOptions
  */
-ReceiverOptions.prototype.ParseArguments = function() {
-    var args = yargs
+ReceiverOptions.prototype.ParseArguments = function(listArgs) {
+    var argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'msg-selector':     { alias: 'recv-selector', describe: 'sql selector to broker'},
@@ -274,10 +288,10 @@ ReceiverOptions.prototype.ParseArguments = function() {
             'process-reply-to': { default: false ,describe: 'send message to reply-to address if enabled and message got reply-to address', type: 'boolean'},
             'recv-listen':      { default: false, describe: 'enable receiver listen (P2P)', type: ['boolean', 'string']},
             'recv-listen-port': { default: 5672, describe: 'define port for local listening', type: ['uint']},
-        })
-        .argv;
+        });
+    var args = parse(argsProcessor, listArgs);
 
-    this.ParseSenderReceiverArguments();
+    this.ParseSenderReceiverArguments(listArgs);
     this.msgSelector = args['msg-selector'];
     this.recvBrowse = args['recv-browse'];
     this.action = args['action'];
@@ -379,8 +393,8 @@ SenderOptions.prototype = Object.create(SenderReceiverOptions.prototype);
  * @description Parse Senderclient options
  * @memberof SenderOptions
  */
-SenderOptions.prototype.ParseArguments = function() {
-    var args = yargs
+SenderOptions.prototype.ParseArguments = function(listArgs) {
+    var argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'msg-id':                   { alias: 'i', describe: 'message id'},
@@ -406,10 +420,10 @@ SenderOptions.prototype.ParseArguments = function() {
             'capacity':                 { default: 0, describe: 'set sender capacity', type: 'uint'},
             'reactor-auto-settle-off':  { default: false, describe: 'disable auto settling', type: 'boolean'},
             'anonymous':                { fefault: false, describe: 'send message by connection level anonymous sender', type: 'boolean'},
-        })
-        .argv;
+        });
+    var args = parse(argsProcessor, listArgs);
 
-    this.ParseSenderReceiverArguments();
+    this.ParseSenderReceiverArguments(listArgs);
 
     //fill properties with parsed arguments
     this.msgId = args['msg-id'];

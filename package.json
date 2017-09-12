@@ -1,12 +1,13 @@
 {
   "name": "cli-rhea",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Client interface built on grs/rhea lib",
   "scripts": {
     "test": "mocha tests/**.spec.js",
     "browserify": "browserify --ignore ws -r .:cli-rhea -o cli-rhea.js",
     "lint": "eslint ./client-lib/*.js",
-    "doc": "jsdoc ./client-lib -d ./doc"
+    "doc": "jsdoc ./client-lib -d ./doc",
+    "install-drivers": "selenium-standalone install –drivers.firefox.baseURL=http://npm.taobao.org/mirrors/geckodriver –baseURL=http://npm.taobao.org/mirrors/selenium –drivers.chrome.baseURL=http://npm.taobao.org/mirrors/chromedriver –drivers.ie.baseURL=http://npm.taobao.org/mirrors/selenium"
   },
   "repository": {
     "type": "git",
@@ -15,13 +16,14 @@
   "bin": {
     "cli-rhea-sender": "bin/sender-client.js",
     "cli-rhea-receiver": "bin/receiver-client.js",
-    "cli-rhea-connector": "bin/connector-client.js"
+    "cli-rhea-connector": "bin/connector-client.js",
+    "cli-rhea-browser-runner": "bin/browser-runner.js"
   },
   "dependencies": {
-    "yargs": "7.1.0",
     "rhea": "^0.2.0",
     "string-format-js": "",
-    "ws": "1.1.1"
+    "ws": "1.1.1",
+    "yargs": "7.1.0"
   },
   "keywords": [
     "rhea",
@@ -41,7 +43,9 @@
     "eslint": "",
     "chai": "",
     "mocha": "",
-    "jsdoc": ""
+    "jsdoc": "",
+    "webdriverio": "",
+    "selenium-standalone": ""
   },
   "author": "David Kornel",
   "homepage": "https://bitbucket.org/david_kornel/cli-rhea#readme"

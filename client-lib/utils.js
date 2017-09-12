@@ -26,15 +26,32 @@ var fs = require('fs');
 * @memberof Utils
 */
 var PrintMessage = function (message, format) {
-    if(format === 'body') {
-        console.log(formatter.FormatBody(message));
-    }else if (format === 'dict') {
-        console.log(formatter.FormatAsDict(message));
-    }else if (format === 'upstream') {
-        console.log(formatter.FormatAsUpstream(message));
-    }else if (format === 'interop') {
-        console.log(formatter.FormatAsInteropDict(message));
+    var printFunction = console.log;
+    if(typeof window !== 'undefined') {
+        printFunction = AppendHtmlData;
     }
+    if(format === 'body') {
+        printFunction(formatter.FormatBody(message));
+    }else if (format === 'dict') {
+        printFunction(formatter.FormatAsDict(message));
+    }else if (format === 'upstream') {
+        printFunction(formatter.FormatAsUpstream(message));
+    }else if (format === 'interop') {
+        printFunction(formatter.FormatAsInteropDict(message));
+    }
+};
+
+/**
+* @function AppendHtmlData
+* @description append formatted message as div into html page
+* @param {string} message - message dict
+* @memberof Utils
+*/
+var AppendHtmlData = function(message) {
+    var node = document.createTextNode(message);
+    var div = document.createElement('div');
+    div.appendChild(node);
+    document.body.appendChild(div);
 };
 
 /**
@@ -108,7 +125,11 @@ var SetUpClientLogging = function (logLevel) {
 * @memberof Utils
 */
 var PrintError = function (errMsg) {
-    console.error(formatter.FormatError(errMsg));
+    var printFunction = console.error;
+    if(typeof window !== 'undefined') {
+        printFunction = AppendHtmlData;
+    }
+    printFunction(formatter.FormatError(errMsg));
 };
 
 /**

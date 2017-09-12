@@ -20,9 +20,9 @@ var Utils = require('./utils.js');
 var CoreClient = require('./coreClient.js').CoreClient;
 var Options = require('./optionsParser.js').SenderOptions;
 require('string-format-js');
+var options = new Options();
 
 if (typeof window === 'undefined') {
-    var options = new Options();
     options.ParseArguments();
     CoreClient.logStats = options.logStats;
     Utils.SetUpClientLogging(options.logLib);
@@ -239,12 +239,16 @@ var Sender = function() {
     * @memberof Sender
     */
     this.Run = function(opts) {
-        if(opts !== undefined) {
+        //if sender run as api
+        if(opts !== undefined && Array.isArray(opts)) {
+            options.ParseArguments(opts);
+        }else if(opts !== undefined && typeof opts === 'object') {
             options = opts;
         }
+
         this.ts = Utils.GetTime();
 
-        // if running in browser setup websocket auto.
+        // if running in browser setup websocket auto and parse args
         if(typeof window !== 'undefined') {
             options.websocket = true;
         }
