@@ -90,7 +90,9 @@ Connector.PrintOutput = function() {
  * @memberof Connector
  */
 Connector.prototype.Run = function(opts) {
-    if(opts !== undefined) {
+    if(opts !== undefined && Array.isArray(opts)) {
+        options.ParseArguments(opts);
+    }else if(opts !== undefined && typeof opts === 'object') {
         options = opts;
     }
 
