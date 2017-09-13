@@ -20,6 +20,9 @@
 var webdriverio = require('webdriverio');
 var selenium = require('selenium-standalone');
 var optionsParser = require('../client-lib/optionsParser.js');
+var Utils = require('../client-lib/utils.js');
+var driver = null;
+var seleniumProccess = null;
 
 var args = require('yargs')
     .usage('$0 [args]')
@@ -65,6 +68,25 @@ BrowserTestsRunner.PrintResults = function(res) {
 };
 
 /**
+* @function RunnerScript
+* @static
+* @description script for run client in browser
+* @param {string} clientType - type of client
+* @param {string} args - arguments for client
+* @memberof BrowserTestsRunner
+*/
+BrowserTestsRunner.RunnerScript = function(clientType ,args) {
+    var client = require("cli-rhea");
+    var cli = client.SenderClient;
+    if(clientType === 'receiver') {
+        cli = client.ReceiverClient;
+    }else if (clientType === 'connector') {
+        cli = client.ConnectorClient;
+    }
+    cli.Run(args);
+};
+
+/**
 * @function Run
 * @public
 * @description Run client browser executor
@@ -74,6 +96,7 @@ BrowserTestsRunner.prototype.Run = function() {
     var timeout = 3000;
 
     selenium.start({}, function(err, cp) {
+        seleniumProccess = cp;
         if (err) {
             console.log(err);
             return;
@@ -88,26 +111,16 @@ BrowserTestsRunner.prototype.Run = function() {
                 }
             }
         };
-        var driver = webdriverio.remote(seleniumOpts);
+        driver = webdriverio.remote(seleniumOpts);
 
         driver.on('error', function(e) {
-            console.log(e.body.value.class);
-            console.log(e.body.value.message);
+            throw new Utils.ErrorHandler(e.body.value.message);
         });
 
         driver
             .init()
             .url('file://' + htmlPath)
-            .execute(function(clientType ,args) {
-                var client = require("cli-rhea");
-                var cli = client.SenderClient;
-                if(clientType === 'receiver') {
-                    cli = client.ReceiverClient;
-                }else if (clientType === 'connector') {
-                    cli = client.ConnectorClient;
-                }
-                cli.Run(args);
-            }, args['client-type'], options)
+            .execute(BrowserTestsRunner.RunnerScript, args['client-type'], options)
             .pause(timeout)
             .getText('div').then(BrowserTestsRunner.PrintResults)
             .call(
@@ -120,6 +133,12 @@ BrowserTestsRunner.prototype.Run = function() {
             .end();
     });
 };
+
+process.on('uncaughtException', function(err) {
+    driver.end();
+    seleniumProccess.kill();
+    throw new Utils.ErrorHandler(err);
+});
 ///////////////////////////////////////////////////////////////////////////////////
 /**
  * @module BrowserTestsRunner
