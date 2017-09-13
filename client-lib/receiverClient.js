@@ -201,7 +201,6 @@ var Receiver = function () {
         // if running in browser setup websocket auto.
         if(typeof window !== 'undefined') {
             options.websocket = true;
-            options = Options.ParseArguments(opts);
         }
 
         this.Init();

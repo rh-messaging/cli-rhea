@@ -39,12 +39,39 @@ if(args['client-type'] === 'sender') {
 }
 options.ParseArguments(process.argv.slice(4));
 
+/**
+ * @class BrowserTestsRunner
+ * @description Class represents executor for browser base client using selenium
+ */
 var BrowserTestsRunner = function() {};
 
 BrowserTestsRunner.prototype.constructor = BrowserTestsRunner;
 
+/**
+* @function PrintResults
+* @static
+* @description print output of html page to console output
+* @param {object} res - object for print
+* @memberof BrowserTestsRunner
+*/
+BrowserTestsRunner.PrintResults = function(res) {
+    if(typeof res === 'string') {
+        console.log(res);
+    }else{
+        res.forEach(function(elem) {
+            console.log(elem);
+        });
+    }
+};
+
+/**
+* @function Run
+* @public
+* @description Run client browser executor
+* @memberof BrowserTestsRunner
+*/
 BrowserTestsRunner.prototype.Run = function() {
-    var timeout = args['timeout'] ? args['timeout'] * args['count'] : 3000;
+    var timeout = 3000;
 
     selenium.start({}, function(err, cp) {
         if (err) {
@@ -53,7 +80,14 @@ BrowserTestsRunner.prototype.Run = function() {
         }
 
         var htmlPath = __dirname + '/client.html';
-        var seleniumOpts = { desiredCapabilities: { browserName: 'chrome' } };
+        var seleniumOpts = {
+            desiredCapabilities: {
+                browserName: 'chrome',
+                chromeOptions: {
+                    args: ['--headless'],
+                }
+            }
+        };
         var driver = webdriverio.remote(seleniumOpts);
 
         driver.on('error', function(e) {
@@ -74,19 +108,23 @@ BrowserTestsRunner.prototype.Run = function() {
                 }
                 cli.Run(args);
             }, args['client-type'], options)
-            .pause(1000)
-            .getText('div').then(function(res) {
-                res.forEach(function(elem) {
-                    console.log(elem);
-                });
-            })
             .pause(timeout)
+            .getText('div').then(BrowserTestsRunner.PrintResults)
+            .call(
+                function() {
+                    setTimeout(function(cp) {
+                        cp.kill();
+                    }, 500, cp);
+                }
+            )
             .end();
-
-        setTimeout(function(cp) {
-            cp.kill();
-        }, timeout + 5000, cp);
     });
 };
+///////////////////////////////////////////////////////////////////////////////////
+/**
+ * @module BrowserTestsRunner
+ * @description BrowserTestsRunner class
+ */
 
+/** BrowserTestsRunner class */
 exports.BrowserTestsRunner = BrowserTestsRunner;
