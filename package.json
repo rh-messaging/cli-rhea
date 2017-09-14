@@ -1,6 +1,6 @@
 {
   "name": "cli-rhea",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "Client interface built on grs/rhea lib",
   "scripts": {
     "test": "mocha tests/**.spec.js",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/david_kornel/cli-rhea.git"
+    "url": "git+ssh://git@github.com:rh-messaging/cli-rhea.git"
   },
   "bin": {
     "cli-rhea-sender": "bin/sender-client.js",
@@ -48,5 +48,5 @@
     "selenium-standalone": ""
   },
   "author": "David Kornel",
-  "homepage": "https://bitbucket.org/david_kornel/cli-rhea#readme"
+  "homepage": "https://github.com/rh-messaging/cli-rhea/blob/master/README.md"
 }
