@@ -22,7 +22,6 @@ var selenium = require('selenium-standalone');
 var optionsParser = require('../client-lib/optionsParser.js');
 var Utils = require('../client-lib/utils.js');
 var driver = null;
-var seleniumProccess = null;
 
 var args = require('yargs')
     .usage('$0 [args]')
@@ -43,21 +42,36 @@ if(args['client-type'] === 'sender') {
 options.ParseArguments(process.argv.slice(4));
 
 /**
+* @function killSelenium
+* @static
+* @description help function for schedule kill selenium process
+* @param {object} process - process of selenoium standalone
+*/
+function killSelenium(process) {
+    setTimeout(function(process) {
+        process.kill();
+    }, 500, process);
+}
+
+/**
  * @class BrowserTestsRunner
  * @description Class represents executor for browser base client using selenium
  */
 var BrowserTestsRunner = function() {};
 
+BrowserTestsRunner.errorMessage = undefined;
+
 BrowserTestsRunner.prototype.constructor = BrowserTestsRunner;
 
 /**
-* @function PrintResults
+* @method PrintResults
 * @static
 * @description print output of html page to console output
 * @param {object} res - object for print
 * @memberof BrowserTestsRunner
 */
 BrowserTestsRunner.PrintResults = function(res) {
+    if(res === undefined) return;
     if(typeof res === 'string') {
         console.log(res);
     }else{
@@ -68,7 +82,7 @@ BrowserTestsRunner.PrintResults = function(res) {
 };
 
 /**
-* @function RunnerScript
+* @method RunnerScript
 * @static
 * @description script for run client in browser
 * @param {string} clientType - type of client
@@ -87,6 +101,19 @@ BrowserTestsRunner.RunnerScript = function(clientType ,args) {
 };
 
 /**
+* @method LogsHandler
+* @static
+* @description handler for browser console logs mesages
+* @param {object} messages - array of messages
+* @memberof BrowserTestsRunner
+*/
+BrowserTestsRunner.LogsHandler = function(messages) {
+    if(messages.value.length > 0) {
+        BrowserTestsRunner.errorMessage = messages.value[0].message;
+    }
+};
+
+/**
 * @function Run
 * @public
 * @description Run client browser executor
@@ -96,7 +123,6 @@ BrowserTestsRunner.prototype.Run = function() {
     var timeout = 3000;
 
     selenium.start({}, function(err, cp) {
-        seleniumProccess = cp;
         if (err) {
             console.log(err);
             return;
@@ -108,6 +134,11 @@ BrowserTestsRunner.prototype.Run = function() {
                 browserName: 'chrome',
                 chromeOptions: {
                     args: ['--headless'],
+                },
+                loggingPrefs: {
+                    'client': 'ALL',
+                    'driver': 'ALL',
+                    'browser': 'ALL'
                 }
             }
         };
@@ -122,22 +153,32 @@ BrowserTestsRunner.prototype.Run = function() {
             .url('file://' + htmlPath)
             .execute(BrowserTestsRunner.RunnerScript, args['client-type'], options)
             .pause(timeout)
-            .getText('div').then(BrowserTestsRunner.PrintResults)
-            .call(
-                function() {
-                    setTimeout(function(cp) {
-                        cp.kill();
-                    }, 500, cp);
+            .elements('div') //check if webpage return any message
+            .then(function(elements) {
+                driver
+                    .log('browser')
+                    .then(BrowserTestsRunner.LogsHandler);
+                if (elements.value.length === 0) {
+                    killSelenium(cp);
+                    driver.end();
+                }else {
+                    driver
+                        .getText('div').then(BrowserTestsRunner.PrintResults)
+                        .call(
+                            function() {
+                                killSelenium(cp);
+                            }
+                        )
+                        .end();
                 }
-            )
-            .end();
+            });
     });
 };
 
-process.on('uncaughtException', function(err) {
-    driver.end();
-    seleniumProccess.kill();
-    throw new Utils.ErrorHandler(err);
+process.on('exit', function () {
+    if(BrowserTestsRunner.errorMessage !== undefined) {
+        throw new Utils.ErrorHandler(BrowserTestsRunner.errorMessage);
+    }
 });
 ///////////////////////////////////////////////////////////////////////////////////
 /**
