@@ -153,11 +153,10 @@ BrowserTestsRunner.prototype.Run = function() {
             .url('file://' + htmlPath)
             .execute(BrowserTestsRunner.RunnerScript, args['client-type'], options)
             .pause(timeout)
+            .log('browser') //get all console lofs from browser
+            .then(BrowserTestsRunner.LogsHandler)
             .elements('div') //check if webpage return any message
             .then(function(elements) {
-                driver
-                    .log('browser')
-                    .then(BrowserTestsRunner.LogsHandler);
                 if (elements.value.length === 0) {
                     killSelenium(cp);
                     driver.end();
