@@ -258,7 +258,7 @@ var Sender = function() {
             if(options.websocket) {
                 var ws = this.websocket_connect(CoreClient.GetWebSocketObject());
                 this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
-                    .open_sender(options.address);
+                    .open_sender(CoreClient.BuildSenderOptionsDict(options));
             } else {
                 var connection = this.connect(CoreClient.BuildConnectionOptionsDict(options));
                 if (!options.anonymous) {

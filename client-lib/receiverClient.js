@@ -209,7 +209,7 @@ var Receiver = function () {
             if(options.websocket) {
                 var ws = this.websocket_connect(CoreClient.GetWebSocketObject());
                 this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
-                    .open_receiver(options.address);
+                    .open_receiver(CoreClient.BuildReceiverOptionsDict(options));
             }else {
                 if(!options.recvListen) {
                     //run receiver
