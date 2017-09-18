@@ -1,7 +1,7 @@
 # CLI-RHEA
 Rhea testing client is javascript client built on [RHEA](https://www.npmjs.com/package/rhea) amqp library.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/t1eed8w9ftcamtb1/branch/master?svg=true)](https://ci.appveyor.com/project/dkornel/cli-rhea/branch/master)
+[![Build Status](https://travis-ci.org/rh-messaging/cli-rhea.svg?branch=master)](https://travis-ci.org/rh-messaging/cli-rhea)
 
 ### Installation
 
