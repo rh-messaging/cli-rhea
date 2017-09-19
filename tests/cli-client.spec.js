@@ -132,7 +132,7 @@ function while_running(done, background) {
             var f = function () {
                 verify(foreground_done, programs);
             };
-            setTimeout(f, 50);
+            setTimeout(f, 500);
         }
     };
 }
@@ -181,9 +181,13 @@ describe('Running bin cmd client', function() {
         verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop', '--conn-web-socket'])]);
     });
     it('Websocket receive messages', function(done) {
-        verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--log-msgs', 'interop', '--conn-web-socket'])]);
+        verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--log-msgs', 'interop', '--conn-web-socket'])]);
     });
     it('Send messages sasl', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop'])]);
+    });
+    it('P2P test', function(done) {
+        verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--log-msgs', 'interop', '--recv-listen', 'true', '--recv-listen-port', '8888'])]);
+        verify(done, [example('../bin/sender-client.js', ['--broker', '127.0.0.1:8888', '--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop'])]);
     });
 });
