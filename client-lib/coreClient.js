@@ -19,6 +19,11 @@
 var filters = require('rhea/lib/filter.js');
 var Utils = require('./utils.js');
 var fs = require('fs');
+var newFilters = require('rhea').filter;
+
+if(!filters) {
+    filters = newFilters;
+}
 
 /**
  * @namespace CoreClient
