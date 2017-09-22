@@ -108,13 +108,13 @@ var SetUpClientLogging = function (logLevel) {
 
     if (logLevel.toUpperCase() === 'TRANSPORT_DRV') {
         // proton: Log driver related events, e.g. initialization, end of stream, etc.
-        process.env['DEBUG'] = 'rhea:events';
+        process.env.DEBUG = 'rhea:events';
     } else if (logLevel.toUpperCase() === 'TRANSPORT_FRM') {
         // proton: Log frames into/out of the transport.
-        process.env['DEBUG'] = 'rhea:frames';
+        process.env.DEBUG = 'rhea:frames';
     } else if (logLevel.toUpperCase() === 'TRANSPORT_RAW') {
         // proton: Log raw binary data into/out of the transport.
-        process.env['DEBUG'] = 'rhea:raw';
+        process.env.DEBUG = 'rhea:raw';
     }
 };
 

@@ -17,15 +17,17 @@
 'use strict';
 
 var Utils = require('./utils.js');
-var CoreClient = require('./coreClient.js').CoreClient;
 var Options = require('./optionsParser.js').SenderOptions;
 require('string-format-js');
 var options = new Options();
-
 if (typeof window === 'undefined') {
     options.ParseArguments();
-    CoreClient.logStats = options.logStats;
     Utils.SetUpClientLogging(options.logLib);
+}
+
+var CoreClient = require('./coreClient.js').CoreClient;
+if (typeof window === 'undefined') {
+    CoreClient.logStats = options.logStats;
 }
 
 var container = require('rhea');

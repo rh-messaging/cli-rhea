@@ -1,6 +1,6 @@
 {
   "name": "cli-rhea",
-  "version": "1.0.32",
+  "version": "1.0.33",
   "description": "Client interface built on grs/rhea lib",
   "scripts": {
     "test": "mocha tests/**.spec.js",
@@ -41,7 +41,6 @@
   "devDependencies": {
     "browserify": "",
     "eslint": "",
-    "chai": "",
     "mocha": "",
     "jsdoc": "",
     "webdriverio": "",
