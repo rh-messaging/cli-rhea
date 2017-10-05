@@ -165,8 +165,8 @@ describe('Running bin cmd client', function() {
     it('Connector client help', function(done) {
         verify(done, [example('../bin/connector-client.js', ['--help'])]);
     });
-    it('Send bare messages', function(done) {
-        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop'])]);
+    it('Send empty messages', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--log-msgs', 'interop'])]);
     });
     it('Receive three messages', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 3, '--log-msgs', 'interop'])]);
@@ -214,5 +214,8 @@ describe('Running bin cmd client', function() {
     });
     it('Send message with disabled reconnect', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--address', 'disabled_reconnect_queue', '--count', 1, '--msg-content', 'msg no.%d', '--conn-reconnect', false])]);
+    });
+    it('Send message with disabled reconnect over websocket', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--address', 'disabled_reconnect_queue', '--count', 1, '--conn-web-socket', true, '--conn-reconnect', false])]);
     });
 });
