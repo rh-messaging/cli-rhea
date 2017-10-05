@@ -4,3 +4,5 @@ rhea-nodejs-client.js
 cli-rhea.js
 .vscode
 doc
+.nyc_output
+coverage

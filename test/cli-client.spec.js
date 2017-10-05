@@ -132,7 +132,7 @@ function while_running(done, background) {
             var f = function () {
                 verify(foreground_done, programs);
             };
-            setTimeout(f, 500);
+            setTimeout(f, 1000);
         }
     };
 }
@@ -154,7 +154,7 @@ function chain() {
 }
 
 describe('Running bin cmd client', function() {
-    this.slow(500);
+    this.slow(600);
 
     it('Sender client help', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--help'])]);
@@ -189,5 +189,30 @@ describe('Running bin cmd client', function() {
     it('P2P test', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--log-msgs', 'interop', '--recv-listen', 'true', '--recv-listen-port', '8888'])]);
         verify(done, [example('../bin/sender-client.js', ['--broker', '127.0.0.1:8888', '--count', 10, '--msg-content', 'msg no.%d', '--log-msgs', 'interop'])]);
+    });
+    it('Connector client stay connected', function(done) {
+        verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 1, '--obj-ctrl', 'CESR'])]);
+    });
+    it('Send map messages', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content-map-item', 'a~true', '--msg-content-map-item', 'b~false', '--msg-content-map-item', 'c~30','--log-msgs', 'interop'])]);
+    });
+    it('Send list messages', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content-list-item', 'true', '--msg-content-list-item', 'string', '--msg-content-list-item', 15,'--log-msgs', 'interop'])]);
+    });
+    it('Message selector', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--address', 'selector_queue', '--count', 5, '--msg-content', 'msg no.%d', '--log-msgs', 'interop', '--msg-property', 'colour~red'])]);
+        verify(done, [example('../bin/receiver-client.js', ['--count', 5, '--log-msgs', 'interop', '--address', 'selector_queue', '--msg-selector', 'colour=red'])]);
+    });
+    it('Test message logging frames', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--address', 'log_queue', '--count', 1, '--msg-content', 'msg no.%d', '--log-lib', 'TRANSPORT_FRM'])]);
+    });
+    it('Test message logging raw', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--address', 'log_queue', '--count', 1, '--msg-content', 'msg no.%d', '--log-lib', 'TRANSPORT_RAW'])]);
+    });
+    it('Test message logging events', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--address', 'log_queue', '--count', 1, '--msg-content', 'msg no.%d', '--log-lib', 'TRANSPORT_DRV'])]);
+    });
+    it('Send message with disabled reconnect', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--address', 'disabled_reconnect_queue', '--count', 1, '--msg-content', 'msg no.%d', '--conn-reconnect', false])]);
     });
 });

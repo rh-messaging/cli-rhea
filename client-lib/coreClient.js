@@ -72,7 +72,7 @@ CoreClient.Close = function (context, closeSleep, isListener) {
  * @param {object} context - event context
  */
 CoreClient.Reply = function (context) {
-    var sender = context.connection.open_sender({target: {address: context.message['reply_to']},
+    var sender = context.connection.open_sender({target: {address: context.message.reply_to},
         autosettle: false});
     sender.send(context.message);
     sender.set_drained(true);
@@ -184,11 +184,11 @@ CoreClient.ResetTimeout = function (context, isListener) {
 CoreClient.SetUpSSL = function (options) {
     var sslDict = {};
 
-    sslDict['transport'] = 'tls';
-    if (options.sslPrivateKey) sslDict['key'] = fs.readFileSync(options.sslPrivateKey);
-    if (options.sslCertificate) sslDict['cert'] = fs.readFileSync(options.sslCertificate);
-    if (options.sslTrustStore) sslDict['ca'] = fs.readFileSync(options.sslTrustStore);
-    if (options.sslPassword) sslDict['passphrase'] = options.sslPassword;
+    sslDict.transport = 'tls';
+    if (options.sslPrivateKey) sslDict.key = fs.readFileSync(options.sslPrivateKey);
+    if (options.sslCertificate) sslDict.cert = fs.readFileSync(options.sslCertificate);
+    if (options.sslTrustStore) sslDict.ca = fs.readFileSync(options.sslTrustStore);
+    if (options.sslPassword) sslDict.passphrase = options.sslPassword;
 
     return sslDict;
 };
@@ -232,34 +232,34 @@ CoreClient.BuildConnectionOptionsDict = function(options) {
     //destination setting
     if(options.connUrls) {
         //failover
-        connectionDict['connection_details'] = CoreClient.BuildFailoverHandler(options);
+        connectionDict.connection_details = CoreClient.BuildFailoverHandler(options);
     }else{
         //standart
-        connectionDict['host'] = options.url;
-        connectionDict['port'] = options.port;
+        connectionDict.host = options.url;
+        connectionDict.port = options.port;
     }
 
     //sasl
-    connectionDict['username'] = options.username;
-    connectionDict['password'] = options.password;
+    connectionDict.username = options.username;
+    connectionDict.password = options.password;
 
     //reconnect
     if(options.reconnect) {
         if (options.reconnectLimit) {
-            connectionDict['reconnect_limit'] = options.reconnectLimit;
+            connectionDict.reconnect_limit = options.reconnectLimit;
         }
         if(options.reconnectInterval) {
-            connectionDict['initial_reconnect_delay'] = options.reconnectInterval;
-            connectionDict['max_reconnect_delay'] = options.reconnectInterval;
+            connectionDict.initial_reconnect_delay = options.reconnectInterval;
+            connectionDict.max_reconnect_delay = options.reconnectInterval;
         }
     }else if (!options.reconnect) {
-        connectionDict['reconnect'] = false;
+        connectionDict.reconnect = false;
     }
     //max frame size
-    connectionDict['max_frame_size'] = options.frameSize;
+    connectionDict.max_frame_size = options.frameSize;
     //heartbeat
     if (options.heartbeat) {
-        connectionDict['idle_time_out'] = options.heartbeat;
+        connectionDict.idle_time_out = options.heartbeat;
     }
 
     //ssl setting
@@ -281,16 +281,16 @@ CoreClient.BuildConnectionOptionsDict = function(options) {
 CoreClient.BuildReceiverOptionsDict = function(options) {
     var receiverOptions = {};
     var source = {};
-    source['address'] = options.address; //address of queue
-    source['distribution_mode'] = options.recvBrowse ? 'copy' : ''; //message browse options
-    source['durable'] = options.durable; //durable subscription
-    source['filter'] = (options.msgSelector) ? filters.selector(options.msgSelector) : ''; //message selector options
+    source.address = options.address; //address of queue
+    source.distribution_mode = options.recvBrowse ? 'copy' : ''; //message browse options
+    source.durable = options.durable; //durable subscription
+    source.filter = (options.msgSelector) ? filters.selector(options.msgSelector) : ''; //message selector options
 
     if (options.action !== 'acknowledge') {
-        receiverOptions['autoaccept'] = false;
+        receiverOptions.autoaccept = false;
     }
-    receiverOptions['credit_window'] = (options.recvBrowse || options.count === 0 || options.duration > 0) ? 0 : undefined; //disable automatic credit windows for recv browse or read all messages from queue
-    receiverOptions['source'] = source;
+    receiverOptions.credit_window = (options.recvBrowse || options.count === 0 || options.duration > 0) ? 0 : undefined; //disable automatic credit windows for recv browse or read all messages from queue
+    receiverOptions.source = source;
 
     return receiverOptions;
 };
@@ -304,16 +304,16 @@ CoreClient.BuildReceiverOptionsDict = function(options) {
 CoreClient.BuildSenderOptionsDict = function(options) {
     var senderOptions = {};
     var target = {};
-    target['address'] = options.address;
-    target['durable'] = options.durable;
+    target.address = options.address;
+    target.durable = options.durable;
 
     if (options.linkAtMostOnce) {
-        senderOptions['snd_settle_mode'] = 1;
+        senderOptions.snd_settle_mode = 1;
     } else if (options.linkAtLeastOnce) {
-        senderOptions['snd_settle_mode'] = 0;
+        senderOptions.snd_settle_mode = 0;
     }
-    senderOptions['target'] = target;
-    senderOptions['autosettle'] = !options.autoSettleOff;
+    senderOptions.target = target;
+    senderOptions.autosettle = !options.autoSettleOff;
 
     return senderOptions;
 };
@@ -353,29 +353,29 @@ CoreClient.BuildWebSocketConnectionDict = function(ws, options) {
     var connectionDict = {};
 
     //destination setting
-    connectionDict['connection_details'] = ws(CoreClient.BuildWebSocketConnString(options), ['binary', 'AMQPWSB10', 'amqp']);
+    connectionDict.connection_details = ws(CoreClient.BuildWebSocketConnString(options), ['binary', 'AMQPWSB10', 'amqp']);
 
     //sasl
-    connectionDict['username'] = options.username;
-    connectionDict['password'] = options.password;
+    connectionDict.username = options.username;
+    connectionDict.password = options.password;
 
     //reconnect
     if(options.reconnect) {
         if (options.reconnectLimit) {
-            connectionDict['reconnect_limit'] = options.reconnectLimit;
+            connectionDict.reconnect_limit = options.reconnectLimit;
         }
         if(options.reconnectInterval) {
-            connectionDict['initial_reconnect_delay'] = options.reconnectInterval;
-            connectionDict['max_reconnect_delay'] = options.reconnectInterval;
+            connectionDict.initial_reconnect_delay = options.reconnectInterval;
+            connectionDict.max_reconnect_delay = options.reconnectInterval;
         }
     }else if (!options.reconnect) {
-        connectionDict['reconnect'] = false;
+        connectionDict.reconnect = false;
     }
     //max frame size
-    connectionDict['max_frame_size'] = options.frameSize;
+    connectionDict.max_frame_size = options.frameSize;
     //heartbeat
     if (options.heartbeat) {
-        connectionDict['idle_time_out'] = options.heartbeat;
+        connectionDict.idle_time_out = options.heartbeat;
     }
 
     return connectionDict;

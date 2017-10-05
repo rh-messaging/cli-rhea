@@ -55,4 +55,28 @@ describe('Client import', function() {
             expect(client.ConnectorClient.Run).to.be.a('function');
         });
     });
+    describe('"Using node mode for sending/receiving"', function() {
+        it('Send by imported client', function(done) {
+            client.Options.msgContent = 'simple text message';
+            client.Options.broker('localhost');
+            client.Options.msgGroupId = 'group-1';
+            client.Options.address = 'test_queue';
+            client.Options.msgPriority = 2;
+            client.Options.msgReplyTo = 'reply_to_queue';
+            client.Options.msgId = 'message id';
+            client.Options.count = 1;
+            client.Options.logMsgs = 'interop';
+            client.SenderClient.Run(client.Options);
+            setTimeout(done, 1500);
+        });
+        it('Receive by imported client', function(done) {
+            client.Options.broker('admin:admin@localhost:5672');
+            client.Options.address = 'test_queue';
+            client.Options.logMsgs = 'interop';
+            client.Options.count = 1;
+            client.Options.logStats = 'endpoints';
+            client.ReceiverClient.Run(client.Options);
+            setTimeout(done, 1500);
+        });
+    });
 });

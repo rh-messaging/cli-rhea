@@ -119,20 +119,6 @@ var SetUpClientLogging = function (logLevel) {
 };
 
 /**
-* @function PrintError
-* @description print error on stderr
-* @param {string} errMsg - error message
-* @memberof Utils
-*/
-var PrintError = function (errMsg) {
-    var printFunction = console.error;
-    if(typeof window !== 'undefined') {
-        printFunction = AppendHtmlData;
-    }
-    printFunction(formatter.FormatError(errMsg));
-};
-
-/**
 * @function PrintStatistic
 * @description print statistic of client
 * @param {object} context - event context
@@ -200,8 +186,6 @@ exports.CalculateDelay = CalculateDelay;
 exports.GetTime = GetTime;
 /** function for setup lib logging */
 exports.SetUpClientLogging = SetUpClientLogging;
-/** function for print err */
-exports.PrintError = PrintError;
 /** function fot print statistics */
 exports.PrintStatistic = PrintStatistic;
 /** Custom error handler */

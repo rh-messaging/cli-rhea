@@ -56,28 +56,28 @@ var Sender = function() {
         //message initialization
         try {
             var message = {};
-            message['body'] = {};
-            message['application_properties'] = {};
-            message['message_annotations'] = {};
+            message.body = {};
+            message.application_properties = {};
+            message.message_annotations = {};
 
             //properties
-            message['message_id'] = options.msgId;
-            message['user_id'] = options.msgUserId;
-            message['group_id'] = options.msgGroupId;
-            message['group_sequence'] = options.msgGroupSeq;
-            message['reply_to_group_id'] = options.msgReplyToGroupId;
-            message['subject'] = options.msgSubject;
-            message['correlation_id'] = options.msgCorrelationId;
-            message['content_type'] = options.msgContentType;
-            message['reply_to'] = options.msgReplyTo;
-            message['delivery_count'] = 0;
+            message.message_id = options.msgId;
+            message.user_id = options.msgUserId;
+            message.group_id = options.msgGroupId;
+            message.group_sequence = options.msgGroupSeq;
+            message.reply_to_group_id = options.msgReplyToGroupId;
+            message.subject = options.msgSubject;
+            message.correlation_id = options.msgCorrelationId;
+            message.content_type = options.msgContentType;
+            message.reply_to = options.msgReplyTo;
+            message.delivery_count = 0;
 
-            message['to'] = options.address;
+            message.to = options.address;
 
             //message header
-            message['durable'] = options.msgDurable;
-            message['priority'] = options.msgPriority;
-            message['ttl'] = options.msgTtl;
+            message.durable = options.msgDurable;
+            message.priority = options.msgPriority;
+            message.ttl = options.msgTtl;
 
             //application properties
             message.application_properties = options.application_properties;
@@ -88,8 +88,9 @@ var Sender = function() {
             //body
             if (options.msgContent) {
                 message.body = options.msgContent;
-                if (typeof options.msgContent === 'string')
+                if (typeof options.msgContent === 'string') {
                     message.body = options.msgContent.format(sentId);
+                }
             }
             if (options.listContent && options.listContent.length > 0) {
                 message.body = options.listContent;
@@ -118,9 +119,10 @@ var Sender = function() {
         if (options.duration > 0) {
             nextRequest(context);
         } else {
+            var message = undefined;
             while (context.container.sent < options.count) {
                 context.container.sent++;
-                var message = createMessage(options, context.container.sent - 1);
+                message = createMessage(options, context.container.sent - 1);
 
                 if (options.anonymous) {
                     context.connection.send(message);
@@ -163,18 +165,18 @@ var Sender = function() {
     }
 
     //send messages
-    this.on('sendable', function(context) {
+    this.on('sendable', function (context) {
         sendMessage(context);
     });
 
     //on accept message
-    this.on('accepted', function(context) {
+    this.on('accepted', function (context) {
         if (++context.container.confirmed === options.count && !options.autoSettleOff) {
             context.container.sent = context.container.confirmed = 0;
             CoreClient.CancelTimeout();
             clearTimeout(context.container.timer_task);
             CoreClient.Close(context, options.closeSleep, false);
-        }else if (options.duration > 0) {
+        } else if (options.duration > 0) {
             if (context.container.confirmed < options.count) {
                 var timeout = Utils.CalculateDelay(options.count, options.duration);
                 context.container.timer_task = setTimeout(nextRequest, timeout, context);
@@ -185,40 +187,40 @@ var Sender = function() {
     });
 
     //event raised when sender is opening
-    this.on('sender_open', function(context) {
+    this.on('sender_open', function (context) {
         if (options.timeout > 0) {
             CoreClient.TimeoutClose(context, options.timeout, false);
         }
     });
 
     //on disconnected
-    this.on('disconnected', function(context) {
+    this.on('disconnected', function (context) {
         clearTimeout(context.container.timer_task);
         CoreClient.OnDisconnect(context);
     });
 
     //on connection problem
-    this.on('connection_error', function(context) {
+    this.on('connection_error', function (context) {
         CoreClient.OnConnError(context);
     });
 
     //reject message
-    this.on('rejected', function(context) {
+    this.on('rejected', function (context) {
         CoreClient.OnRejected(context);
     });
 
     //release message
-    this.on('released', function(context) {
+    this.on('released', function (context) {
         CoreClient.OnReleased(context);
     });
 
     //on protocol error
-    this.on('protocol_error', function(context) {
+    this.on('protocol_error', function (context) {
         CoreClient.OnProtocolError(context);
     });
 
     //on settled
-    this.on('settled', function(context) {
+    this.on('settled', function (context) {
         if (context.container.confirmed === options.count && options.autoSettleOff) {
             CoreClient.CancelTimeout();
             clearTimeout(context.container.timer_task);
@@ -227,7 +229,7 @@ var Sender = function() {
     });
 
     //on connection open
-    this.on('connection_open', function(context) {
+    this.on('connection_open', function (context) {
         if (options.anonymous) {
             sendMessage(context);
         }
@@ -240,7 +242,7 @@ var Sender = function() {
     * @param {object} opts - sender client options
     * @memberof Sender
     */
-    this.Run = function(opts) {
+    this.Run = function (opts) {
         //if sender run as api
         if(opts !== undefined && Array.isArray(opts)) {
             options.ParseArguments(opts);
@@ -257,7 +259,7 @@ var Sender = function() {
 
         try {
             //run sender client
-            if(options.websocket) {
+            if (options.websocket) {
                 var ws = this.websocket_connect(CoreClient.GetWebSocketObject());
                 this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
                     .open_sender(CoreClient.BuildSenderOptionsDict(options));
