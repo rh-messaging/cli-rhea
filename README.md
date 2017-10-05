@@ -3,6 +3,7 @@
 Rhea testing client is javascript client built on [RHEA](https://www.npmjs.com/package/rhea) amqp library.
 
 [![Build Status](https://travis-ci.org/rh-messaging/cli-rhea.svg?branch=master)](https://travis-ci.org/rh-messaging/cli-rhea)
+[![Code Coverage](https://codecov.io/gh/rh-messaging/cli-rhea/branch/master/graph/badge.svg)](https://codecov.io/gh/rh-messaging/cli-rhea)
 
 ## Installation
 
