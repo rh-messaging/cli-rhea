@@ -166,8 +166,12 @@ var StringifyStatObject = function(statistics) {
 * @memberof Utils
 */
 var ErrorHandler = function (message) {
+    var m = message;
+    if (typeof message === 'object') {
+        m = JSON.stringify(message);
+    }
     this.name = 'ERROR';
-    this.message = formatter.FormatError(message);
+    this.message = m;
 };
 
 /////////////////////////////////////////////////////////////////

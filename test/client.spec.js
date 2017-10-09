@@ -57,26 +57,41 @@ describe('Client import', function() {
     });
     describe('"Using node mode for sending/receiving"', function() {
         it('Send by imported client', function(done) {
-            client.Options.msgContent = 'simple text message';
-            client.Options.broker('localhost');
-            client.Options.msgGroupId = 'group-1';
-            client.Options.address = 'test_queue';
-            client.Options.msgPriority = 2;
-            client.Options.msgReplyTo = 'reply_to_queue';
-            client.Options.msgId = 'message id';
-            client.Options.count = 1;
-            client.Options.logMsgs = 'interop';
-            client.SenderClient.Run(client.Options);
+            var cliRhea = require('../client-lib/client.js');
+            cliRhea.Options.msgContent = 'simple text message';
+            cliRhea.Options.broker('localhost');
+            cliRhea.Options.msgGroupId = 'group-1';
+            cliRhea.Options.address = 'test_queue';
+            cliRhea.Options.msgPriority = 2;
+            cliRhea.Options.msgReplyTo = 'reply_to_queue';
+            cliRhea.Options.msgId = 'message id';
+            cliRhea.Options.count = 1;
+            cliRhea.Options.logMsgs = 'upstream';
+            cliRhea.SenderClient.Run(client.Options);
             setTimeout(done, 1500);
         });
         it('Receive by imported client', function(done) {
-            client.Options.broker('admin:admin@localhost:5672');
-            client.Options.address = 'test_queue';
-            client.Options.logMsgs = 'interop';
-            client.Options.count = 1;
-            client.Options.logStats = 'endpoints';
-            client.ReceiverClient.Run(client.Options);
+            var cliRhea = require('../client-lib/client.js');
+            cliRhea.Options.broker('admin:admin@localhost:5672');
+            cliRhea.Options.address = 'test_queue';
+            cliRhea.Options.logMsgs = 'interop';
+            cliRhea.Options.count = 1;
+            cliRhea.Options.logStats = 'endpoints';
+            cliRhea.ReceiverClient.Run(client.Options);
             setTimeout(done, 1500);
+        });
+        it('Reply to', function(done) {
+            var cliRhea = require('../client-lib/client.js');
+            cliRhea.Options.broker('admin:admin@localhost:5672');
+            cliRhea.Options.address = 'test_reply_to_queue';
+            cliRhea.Options.logMsgs = 'dict';
+            cliRhea.Options.logStats = undefined;
+            cliRhea.Options.count = 2;
+            cliRhea.Options.msgReplyTo = 'reply_to_queue';
+            cliRhea.SenderClient.Run(client.Options);
+            cliRhea.Options.processReplyTo = true;
+            cliRhea.ReceiverClient.Run(client.Options);
+            setTimeout(done, 1900);
         });
     });
 });
