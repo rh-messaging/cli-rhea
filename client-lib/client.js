@@ -37,6 +37,7 @@ var Options = {
     sslPassword: undefined,
     sslTrustStore: undefined,
     frameSize: 4294967295,
+    websocket: false,
     arrHosts: [],
     arrPorts: [],
     url: 'localhost',
