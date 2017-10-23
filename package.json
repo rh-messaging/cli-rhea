@@ -1,6 +1,6 @@
 {
   "name": "cli-rhea",
-  "version": "1.0.36",
+  "version": "1.2.0",
   "description": "Client interface built on grs/rhea lib",
   "scripts": {
     "test": "mocha test/**.spec.js",

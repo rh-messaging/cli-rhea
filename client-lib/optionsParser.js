@@ -43,6 +43,7 @@ var ConnectionOptions = function () {
     this.reconnectInterval;
     this.reconnectLimit;
     this.reconnectTimeout;
+    this.connSsl;
     this.sslCertificate;
     this.sslPrivateKey;
     this.sslPassword;
@@ -69,6 +70,7 @@ ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
             'conn-reconnect-limit':         { describe: 'client reconnect limit (only supported with "custom" reconnect)', type: 'int'},
             'conn-reconnect-timeout':       { describe: 'client reconnect timeout (only supported with "custom" reconnect)', type: 'int'},
             'conn-heartbeat':               { deafult: 0, describe: 'heartbeat in second', type: 'uint'},
+            'conn-ssl':                     { default: false, describe: 'enable tls connection', type: ['boolean', 'string']},
             'conn-ssl-certificate':         { describe: 'path to client certificate (PEM format), enables client authentication', type: 'string'},
             'conn-ssl-private-key':         { describe: 'path to client private key (PEM format), conn-ssl-certificate must be given', type: 'string'},
             'conn-ssl-password':            { describe: 'client\'s certificate database password', type: 'string' },
@@ -104,6 +106,11 @@ ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
         this.websocket = args['conn-web-socket'];
     }else{
         this.websocket = args['conn-web-socket'].toUpperCase() === 'TRUE';
+    }
+    if (typeof args['conn-ssl'] === 'boolean') {
+        this.connSsl = args['conn-ssl'];
+    }else{
+        this.connSsl = args['conn-ssl'].toUpperCase() === 'TRUE';
     }
 };
 

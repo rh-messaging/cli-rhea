@@ -262,6 +262,11 @@ CoreClient.BuildConnectionOptionsDict = function(options) {
         connectionDict.idle_time_out = options.heartbeat;
     }
 
+    //set tls
+    if (options.connSsl) {
+        connectionDict.transport = 'tls';
+    }
+
     //ssl setting
     if (options.sslCertificate || options.sslTrustStore) {
         var sslOptions = CoreClient.SetUpSSL(options);
