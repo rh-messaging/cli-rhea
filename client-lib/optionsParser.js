@@ -215,7 +215,7 @@ SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function(listArgs
         .usage('$0 [args]')
         .options({
             'duration':                 { default: 0, describe: 'duration of sending or receiving messages', type: 'uint'},
-            'log-msgs':                 { describe: 'format of messages', choices: ['dict', 'interop', 'body', 'upstream']},
+            'log-msgs':                 { describe: 'format of messages', choices: ['json', 'dict', 'interop', 'body', 'upstream']},
             'link-at-most-once':        { default: false, describe: 'best-effort delivery', type: 'boolean'},
             'link-at-least-once':       { default: false, describe: 'reliable delivery', type: 'boolean'},
         });

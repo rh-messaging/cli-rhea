@@ -268,6 +268,17 @@ var FormatAsInteropDict = function (message) {
 };
 
 /**
+ * @function FormatAsJson
+ * @description format message as json
+ * @param {object} message - message object
+ * @return {string} formated message dict
+ * @memberof formatter
+ */
+var FormatAsJson = function (message) {
+    return JSON.stringify(RenameKeysInDictInterop(message), Replacer);
+};
+
+/**
  * @function FormatAsUpstream
  * @description format message as upstream
  * @param {object} message - message object
@@ -318,6 +329,8 @@ exports.FormatBody = FormatBody;
 exports.FormatAsDict = FormatAsDict;
 /** function format as interop */
 exports.FormatAsInteropDict = FormatAsInteropDict;
+/** function format as json */
+exports.FormatAsJson = FormatAsJson;
 /** function format as upstream */
 exports.FormatAsUpstream = FormatAsUpstream;
 /** function format err */

@@ -38,6 +38,8 @@ var PrintMessage = function (message, format) {
         printFunction(formatter.FormatAsUpstream(message));
     }else if (format === 'interop') {
         printFunction(formatter.FormatAsInteropDict(message));
+    }else if (format === 'json') {
+        printFunction(formatter.FormatAsJson(message));
     }
 };
 
