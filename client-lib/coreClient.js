@@ -262,9 +262,10 @@ CoreClient.BuildConnectionOptionsDict = function(options) {
         connectionDict.idle_time_out = options.heartbeat;
     }
 
-    //set tls
+    //set unauthorized tls
     if (options.connSsl) {
         connectionDict.transport = 'tls';
+        connectionDict.rejectUnauthorized = false;
     }
 
     //ssl setting
