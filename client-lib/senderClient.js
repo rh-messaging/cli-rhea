@@ -120,7 +120,7 @@ var Sender = function() {
             nextRequest(context);
         } else {
             var message = undefined;
-            while (context.container.sent < options.count) {
+            while (context.sender.sendable() && context.container.sent < options.count) {
                 context.container.sent++;
                 message = createMessage(options, context.container.sent - 1);
 
