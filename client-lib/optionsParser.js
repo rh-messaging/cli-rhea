@@ -238,6 +238,8 @@ SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function(listArgs
 var ConnectorOptions = function () {
     //conector options
     this.objCtrl;
+    this.senderCount;
+    this.receiverCount;
 };
 
 ConnectorOptions.prototype = Object.create(BasicOptions.prototype);
@@ -252,11 +254,15 @@ ConnectorOptions.prototype.ParseArguments = function(listArgs) {
         .usage('$0 [args]')
         .options({
             'obj-ctrl': { default: 'C', describe: 'Optional creation object control based on <object-ids>, syntax C/E/S/R stands for Connection, sEssion, Sender, Receiver'},
+            'sender-count':                { default: 1, describe: 'count of senders', type: 'uint'},
+            'receiver-count':                { default: 1, describe: 'count of receivers', type: 'uint'},
         });
     var args = parse(argsProcessor, listArgs);
     this.ParseBasic(listArgs);
 
     this.objCtrl = args['obj-ctrl'];
+    this.senderCount = args['sender-count'];
+    this.receiverCount = args['receiver-count'];
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -108,7 +108,7 @@ Connector.prototype.Run = function(opts) {
     //create connections and open
     for(var i = 0; i < options.count; i++) {
         try{
-            this.containers[i] = container.create_container();
+            this.containers[i] = container.create_container({id: container.generate_uuid()});
 
             this.containers[i].on('connection_open', function() {
                 results.connections.open += 1;
@@ -140,9 +140,10 @@ Connector.prototype.Run = function(opts) {
     }
 
     //check and create sessions receivers senders
-    if(options.objCtrl && options.objCtrl.indexOf('ESR') > -1) {
+    if(options.objCtrl && options.objCtrl.indexOf('E')) {
         //create and open sessions
         for(i = 0; i < options.count; i++) {
+            var j = 0;
             try{
                 this.sessions[i] = this.connections[i].create_session();
                 this.sessions[i].begin();
@@ -153,19 +154,24 @@ Connector.prototype.Run = function(opts) {
 
             //create sender
             if(options.objCtrl && options.objCtrl.indexOf('S') > -1) {
-                try{
-                    this.senders[i] = this.sessions[i].attach_sender(this.address);
-                }catch(err) {
-                    results.senders.error += 1;
+                for (j; j < options.senderCount; j++) {
+                    try{
+                        this.senders[i] = this.sessions[i].attach_sender(this.address);
+                    }catch(err) {
+                        results.senders.error += 1;
+                    }
                 }
             }
 
             //create receiver
             if(options.objCtrl && options.objCtrl.indexOf('R') > -1) {
-                try{
-                    this.receivers[i] = this.sessions[i].attach_receiver(this.address);
-                }catch(err) {
-                    results.receivers.error += 1;
+                j = 0;
+                for (j; j < options.receiverCount; j++) {
+                    try{
+                        this.receivers[i] = this.sessions[i].attach_receiver(this.address);
+                    }catch(err) {
+                        results.receivers.error += 1;
+                    }
                 }
             }
         }
