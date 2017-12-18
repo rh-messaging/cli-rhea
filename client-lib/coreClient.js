@@ -221,16 +221,40 @@ CoreClient.BuildFailoverHandler = function(options) {
 };
 
 /**
- * @method CoreClient.BuildConnectionOptionsDict
+ * @method CoreClient.BuildAmqpConnectionOptionsDict
  * @static
  * @description set up connection options
  * @param {object} options - dict with client options
  */
-CoreClient.BuildConnectionOptionsDict = function(options) {
+CoreClient.BuildAmqpConnectionOptionsDict = function(options) {
+    return CoreClient.BuildConnectionDict(options, undefined);
+};
+
+/**
+ * @method CoreClient.BuildWebSocketConnectionDict
+ * @static
+ * @description set up websocker connection options
+ * @param {object} ws - instance of websocket
+ * @param {object} options - dict with client options
+ */
+CoreClient.BuildWebSocketConnectionDict = function(ws, options) {
+    return CoreClient.BuildConnectionDict(options, ws);
+};
+
+/**
+ * @method CoreClient.BuildConnectionDict
+ * @static
+ * @description set up connection options
+ * @param {object} options - dict with client options
+ * @param {object} ws - instance of websocket
+ */
+CoreClient.BuildConnectionDict = function(options, ws) {
     var connectionDict = {};
 
     //destination setting
-    if(options.connUrls) {
+    if(ws) {
+        connectionDict.connection_details = ws(CoreClient.BuildWebSocketConnString(options), ['binary', 'AMQPWSB10', 'amqp']);
+    } else if(options.connUrls) {
         //failover
         connectionDict.connection_details = CoreClient.BuildFailoverHandler(options);
     }else{
@@ -270,6 +294,7 @@ CoreClient.BuildConnectionOptionsDict = function(options) {
 
     //ssl setting
     if (options.sslCertificate || options.sslTrustStore) {
+        connectionDict.rejectUnauthorized = true;
         var sslOptions = CoreClient.SetUpSSL(options);
         for (var opt in sslOptions) {
             connectionDict[opt] = sslOptions[opt];
@@ -346,45 +371,6 @@ CoreClient.GetWebSocketObject = function () {
         return require('ws');
     }
     return window.WebSocket;
-};
-
-/**
- * @method CoreClient.BuildWebSocketConnectionDict
- * @static
- * @description set up websocker connection options
- * @param {object} ws - instance of websocket
- * @param {object} options - dict with client options
- */
-CoreClient.BuildWebSocketConnectionDict = function(ws, options) {
-    var connectionDict = {};
-
-    //destination setting
-    connectionDict.connection_details = ws(CoreClient.BuildWebSocketConnString(options), ['binary', 'AMQPWSB10', 'amqp']);
-
-    //sasl
-    connectionDict.username = options.username;
-    connectionDict.password = options.password;
-
-    //reconnect
-    if(options.reconnect) {
-        if (options.reconnectLimit) {
-            connectionDict.reconnect_limit = options.reconnectLimit;
-        }
-        if(options.reconnectInterval) {
-            connectionDict.initial_reconnect_delay = options.reconnectInterval;
-            connectionDict.max_reconnect_delay = options.reconnectInterval;
-        }
-    }else if (!options.reconnect) {
-        connectionDict.reconnect = false;
-    }
-    //max frame size
-    connectionDict.max_frame_size = options.frameSize;
-    //heartbeat
-    if (options.heartbeat) {
-        connectionDict.idle_time_out = options.heartbeat;
-    }
-
-    return connectionDict;
 };
 
 //===========================================================================

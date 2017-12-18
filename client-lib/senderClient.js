@@ -264,7 +264,7 @@ var Sender = function() {
                 this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
                     .open_sender(CoreClient.BuildSenderOptionsDict(options));
             } else {
-                var connection = this.connect(CoreClient.BuildConnectionOptionsDict(options));
+                var connection = this.connect(CoreClient.BuildAmqpConnectionOptionsDict(options));
                 if (!options.anonymous) {
                     connection.attach_sender(CoreClient.BuildSenderOptionsDict(options));
                 }
