@@ -215,7 +215,7 @@ var Receiver = function () {
             }else {
                 if(!options.recvListen) {
                     //run receiver
-                    this.connect(CoreClient.BuildConnectionOptionsDict(options))
+                    this.connect(CoreClient.BuildAmqpConnectionOptionsDict(options))
                         .open_receiver(CoreClient.BuildReceiverOptionsDict(options));
                 }else {
                     //run local listener

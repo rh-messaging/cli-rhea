@@ -130,7 +130,7 @@ Connector.prototype.Run = function(opts) {
             if(options.websocket) {
                 connectionParams = CoreClient.BuildWebSocketConnectionDict(this.containers[i].websocket_connect(CoreClient.GetWebSocketObject()), options);
             }else {
-                connectionParams = CoreClient.BuildConnectionOptionsDict(options);
+                connectionParams = CoreClient.BuildAmqpConnectionOptionsDict(options);
             }
 
             this.connections[i] = this.containers[i].connect(connectionParams);

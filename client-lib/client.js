@@ -32,6 +32,7 @@ var Options = {
     reconnectLimit: undefined,
     reconnectTimeout: undefined,
     heartbeat: 0,
+    connSsl: false,
     sslCertificate: undefined,
     sslPrivateKey: undefined,
     sslPassword: undefined,
