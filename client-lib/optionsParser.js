@@ -24,35 +24,120 @@ var utils = require('./utils.js');
  * @param {Object} argsProcessor - yargs Processor for parsing
  * @param {String} data - arguments in string data type
  */
-var parse = function(argsProcessor, data) {
+function parse(argsProcessor, data) {
     if(data) {
         return argsProcessor.parse(data);
     }
     return argsProcessor.argv;
-};
+}
+
+/**
+* @function ParseDataType
+* @description Cast string data from cmd args to data type
+* @param {string} data - string data
+* @return typed data
+*/
+function ParseDataType (data) {
+    if(data === undefined) {
+        return data;
+    }
+    data = data.toString();
+    //autocast
+    if(data.charAt(0) === '~') {
+        data = data.substr(1);
+
+        if(data.toLowerCase() === 'false') {
+            return false;
+        }else if (data.toLowerCase() === 'true') {
+            return true;
+        }else{
+            data = Number(data) || Number(data) === 0 ? Number(data) : data;
+            return data;
+        }
+    }
+    //return string
+    return data;
+}
+
+/**
+* @function ParseMapItem
+* @description Parse string map item
+* @param {string} data - map string item (e.g. 'key'='value')
+* @return vaue of map item
+*/
+function ParseMapItem (data) {
+    var listData = data.split('=');
+    if(listData.length === 1) {
+        listData = data.split('~');
+        listData[1] = ParseDataType('~' + listData[1].toString());
+    }else if (listData.length === 2) {
+        listData[1] = ParseDataType(listData[1]);
+    }
+    return listData;
+}
+
+/**
+ * @function castMapProperty
+ * @description help method for parse property types
+ * @param {Object} argument - argument for parsing
+ */
+function castMapProperty(argument) {
+    var pair;
+    var i;
+    var properties = {};
+    if ((typeof argument) === 'object') {
+        for (i = 0; i < argument.length; i++) {
+            pair = ParseMapItem(argument[i]);
+            properties[pair[0]] = pair[1];
+        }
+    }else if ((typeof argument) === 'string') {
+        pair = ParseMapItem(argument);
+        properties[pair[0]] = pair[1];
+    }
+    return properties;
+}
+
+/**
+ * @function castListProperty
+ * @description help method for parse property types
+ * @param {Object} argument - argument for parsing
+ */
+function castListProperty(argument) {
+    var i;
+    var properties = [];
+    if((typeof argument) === 'object') {
+        for(i = 0; i < argument.length; i++) {
+            properties[i] = ParseDataType(argument[i]);
+        }
+    }else if ((typeof argument) === 'string') {
+        properties[0] = ParseDataType(argument);
+    }
+    return properties;
+}
+
+/**
+ * @function castBoolProperty
+ * @description help method for parse property types
+ * @param {Object} argument - argument for parsing
+ */
+function castBoolProperty(argument) {
+    var returnValue = false;
+    if (typeof argument === 'boolean') {
+        returnValue = argument;
+    }else{
+        returnValue = argument.toUpperCase() === 'TRUE';
+    }
+    return returnValue;
+}
 
 /**
  * @class ConnectionOptions
  * @description Class to parse and store connection options
  */
 var ConnectionOptions = function () {
-    this.connUrls;
-    this.reconnect;
-    this.heartbeat;
-    this.frameSize;
-    this.reconnectInterval;
-    this.reconnectLimit;
-    this.reconnectTimeout;
-    this.connSsl;
-    this.sslCertificate;
-    this.sslPrivateKey;
-    this.sslPassword;
-    this.sslTrustStore;
-    this.sslVerifyPeer;
-    this.sslVerifyPeerName;
-    this.websocket;
     this.arrHosts = [];
     this.arrPorts = [];
+    this.connProperties = {};
 };
 
 /**
@@ -78,7 +163,8 @@ ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
             'conn-ssl-verify-peer':         { default: false, describe: 'verifies server certificate, conn-ssl-certificate and trusted db path needs to be specified (PEM format)', type: 'boolean'},
             'conn-ssl-verify-peer-name':    { default: false, describe: 'verifies connection url against server hostname', type: 'boolean'},
             'conn-max-frame-size':          { default: 4294967295, describe: 'defines max frame size for connection', type: 'uint'},
-            'conn-web-socket':              { default: false, describe: 'use websocket as transport layer', type: ['boolean', 'string']}
+            'conn-web-socket':              { default: false, describe: 'use websocket as transport layer', type: ['boolean', 'string']},
+            'conn-property':                { describe: 'Sets connection property map item'},
         })
         .strict()
         .help('help');
@@ -86,11 +172,7 @@ ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
     var args = parse(argsProcessor, listArgs);
 
     this.connUrls = args['conn-urls'];
-    if (typeof args['conn-reconnect'] === 'boolean') {
-        this.reconnect = args['conn-reconnect'];
-    }else{
-        this.reconnect = args['conn-reconnect'].toUpperCase() === 'TRUE';
-    }
+    this.reconnect = castBoolProperty(args['conn-reconnect']);
     this.reconnectInterval = args['conn-reconnect-interval'];
     this.reconnectLimit = args['conn-reconnect-limit'];
     this.reconnectTimeout = args['conn-reconnect-timeout'];
@@ -102,16 +184,9 @@ ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
     this.sslVerifyPeer = args['conn-ssl-verify-peer'];
     this.sslVerifyPeerName = args['conn-ssl-verify-peer-name'];
     this.frameSize = args['conn-max-frame-size'];
-    if (typeof args['conn-web-socket'] === 'boolean') {
-        this.websocket = args['conn-web-socket'];
-    }else{
-        this.websocket = args['conn-web-socket'].toUpperCase() === 'TRUE';
-    }
-    if (typeof args['conn-ssl'] === 'boolean') {
-        this.connSsl = args['conn-ssl'];
-    }else{
-        this.connSsl = args['conn-ssl'].toUpperCase() === 'TRUE';
-    }
+    this.websocket = castBoolProperty(args['conn-web-socket']);
+    this.connSsl = castBoolProperty(args['conn-ssl']);
+    this.connProperties = castMapProperty(args['conn-property']);
 };
 
 
@@ -120,19 +195,7 @@ ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
  * @description Class to parse and store together options
  * @extends ConnectionOptions
  */
-var BasicOptions = function () {
-    this.username;
-    this.password;
-    this.url;
-    this.port;
-    this.count;
-    this.closeSleep;
-    this.address;
-    this.timeout;
-    this.durable;
-    this.logLib;
-    this.logStats;
-};
+var BasicOptions = function () {};
 
 BasicOptions.prototype = Object.create(ConnectionOptions.prototype);
 
@@ -196,12 +259,7 @@ BasicOptions.prototype.ParseBasic = function(listArgs) {
  * @description Class to parse and store together options for sender and receiver
  * @extends BasicOptions
  */
-var SenderReceiverOptions = function () {
-    this.duration;
-    this.linkAtMostOnce;
-    this.linkAtLeastOnce;
-    this.logMsgs;
-};
+var SenderReceiverOptions = function () {};
 
 SenderReceiverOptions.prototype = Object.create(BasicOptions.prototype);
 
@@ -235,12 +293,7 @@ SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function(listArgs
  * @description Class to parse and store ConnectorClient options
  * @extends BasicOptions
  */
-var ConnectorOptions = function () {
-    //conector options
-    this.objCtrl;
-    this.senderCount;
-    this.receiverCount;
-};
+var ConnectorOptions = function () {};
 
 ConnectorOptions.prototype = Object.create(BasicOptions.prototype);
 
@@ -273,14 +326,7 @@ ConnectorOptions.prototype.ParseArguments = function(listArgs) {
  * @extends SenderReceiverOptions
  */
 var ReceiverOptions = function () {
-    //receiver options
-    this.msgSelector;
     this.recvBrowse = false;
-    this.action;
-    this.capacity;
-    this.processReplyTo;
-    this.recvListen;
-    this.recvListenPort;
 };
 
 ReceiverOptions.prototype = Object.create(SenderReceiverOptions.prototype);
@@ -310,11 +356,7 @@ ReceiverOptions.prototype.ParseArguments = function(listArgs) {
     this.action = args['action'];
     this.capacity = args['capacity'];
     this.processReplyTo = args['process-reply-to'];
-    if (typeof args['recv-listen'] === 'boolean') {
-        this.recvListen = args['recv-listen'];
-    }else{
-        this.recvListen = args['recv-listen'].toUpperCase() === 'TRUE';
-    }
+    this.recvListen = castBoolProperty(args['recv-listen']);
     this.recvListenPort = args['recv-listen-port'];
 };
 
@@ -326,77 +368,10 @@ ReceiverOptions.prototype.ParseArguments = function(listArgs) {
  * @extends SenderReceiverOptions
  */
 var SenderOptions = function () {
-    //sender options
-    this.msgId;
-    this.msgGroupId;
-    this.msgGroupSeq;
-    this.msgReplyToGroupId;
-    this.msgSubject;
-    this.msgReplyTo;
-    this.msgDurable;
-    this.msgTtl;
-    this.msgPriority;
-    this.msgCorrelationId;
-    this.msgUserId;
-    this.msgContentFromFile;
-    this.msgContent;
-    this.msgContentType;
-    this.contentType;
-    this.propertyType;
-    this.capacity;
-    this.autoSettleOff;
-
     this.listContent = [];
     this.mapContent = {};
     this.application_properties = {};
     this.messageAnnotations={};
-
-    /**
-    * @method ParseDataType
-    * @description Cast string data from cmd args to data type
-    * @param {string} data - string data
-    * @return typed data
-    * @memberof SenderOptions
-    */
-    this.ParseDataType = function (data) {
-        if(data === undefined) {
-            return data;
-        }
-        data = data.toString();
-        //autocast
-        if(data.charAt(0) === '~') {
-            data = data.substr(1);
-
-            if(data.toLowerCase() === 'false') {
-                return false;
-            }else if (data.toLowerCase() === 'true') {
-                return true;
-            }else{
-                data = Number(data) || Number(data) === 0 ? Number(data) : data;
-                return data;
-            }
-        }
-        //return string
-        return data;
-    };
-
-    /**
-    * @method ParseMapItem
-    * @description Parse string map item
-    * @param {string} data - map string item (e.g. 'key'='value')
-    * @return vaue of map item
-    * @memberof SenderOptions
-    */
-    this.ParseMapItem = function (data) {
-        var listData = data.split('=');
-        if(listData.length === 1) {
-            listData = data.split('~');
-            listData[1] = this.ParseDataType('~' + listData[1].toString());
-        }else if (listData.length === 2) {
-            listData[1] = this.ParseDataType(listData[1]);
-        }
-        return listData;
-    };
 };
 
 SenderOptions.prototype = Object.create(SenderReceiverOptions.prototype);
@@ -463,46 +438,10 @@ SenderOptions.prototype.ParseArguments = function(listArgs) {
 
     this.contentType = args['content-type'];
     this.capacity = args['capacity'];
-    var pair;
-    var i;
-
-    if((typeof args['msg-property']) === 'object') {
-        for(i = 0; i < args['msg-property'].length; i++) {
-            pair = this.ParseMapItem(args['msg-property'][i]);
-            this.application_properties[pair[0]] = pair[1];
-        }
-    }else if ((typeof args['msg-property']) === 'string') {
-        pair = this.ParseMapItem(args['msg-property']);
-        this.application_properties[pair[0]] = pair[1];
-    }
-
-    if((typeof args['msg-content-list-item']) === 'object') {
-        for(i = 0; i < args['msg-content-list-item'].length; i++) {
-            this.listContent[i] = this.ParseDataType(args['msg-content-list-item'][i]);
-        }
-    }else if ((typeof args['msg-content-list-item']) === 'string') {
-        this.listContent[0] = this.ParseDataType(args['msg-content-list-item']);
-    }
-
-    if((typeof args['msg-content-map-item']) === 'object') {
-        for(i = 0; i < args['msg-content-map-item'].length; i++) {
-            pair = this.ParseMapItem(args['msg-content-map-item'][i]);
-            this.mapContent[pair[0]] = pair[1];
-        }
-    }else if ((typeof args['msg-content-map-item']) === 'string') {
-        pair = this.ParseMapItem(args['msg-content-map-item']);
-        this.mapContent[pair[0]] = pair[1];
-    }
-
-    if((typeof args['msg-annotation']) === 'object') {
-        for(i = 0; i < args['msg-annotation'].length; i++) {
-            pair = this.ParseMapItem(args['msg-annotation'][i]);
-            this.messageAnnotations[pair[0]] = pair[1];
-        }
-    }else if ((typeof args['msg-annotation']) === 'string') {
-        pair = this.ParseMapItem(args['msg-annotation']);
-        this.messageAnnotations[pair[0]] = pair[1];
-    }
+    this.application_properties = castMapProperty(args['msg-property']);
+    this.listContent = castListProperty(args['msg-content-list-item']);
+    this.mapContent = castMapProperty(args['msg-content-map-item']);
+    this.messageAnnotations = castMapProperty(args['msg-annotation']);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

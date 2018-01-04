@@ -300,6 +300,12 @@ CoreClient.BuildConnectionDict = function(options, ws) {
             connectionDict[opt] = sslOptions[opt];
         }
     }
+
+    //connection properties
+    if (options.connProperties) {
+        connectionDict.properties = options.connProperties;
+    }
+
     return connectionDict;
 };
 
