@@ -126,15 +126,6 @@ Connector.prototype.Run = function(opts) {
                 results.senders.open += 1;
             });
 
-            this.containers[i].on('sendable', function(context) {
-                var count = 5;
-                var sent = 0;
-                while(context.sender.sendable() && sent < count) {
-                    context.sender.send({body: 'test message'});
-                    sent++;
-                }
-            });
-
             var connectionParams;
             if(options.websocket) {
                 connectionParams = CoreClient.BuildWebSocketConnectionDict(this.containers[i].websocket_connect(CoreClient.GetWebSocketObject()), options);
@@ -166,6 +157,13 @@ Connector.prototype.Run = function(opts) {
                 for (j; j < options.senderCount; j++) {
                     try{
                         this.senders[i] = this.sessions[i].attach_sender(this.address);
+                        var count = 5;
+                        var sent = 0;
+                        while(sent < count) {
+                            this.senders[i].send({body: 'test message ' + sent});
+                            console.log('sent message from ' + i + ' iteration ' + sent);
+                            sent++;
+                        }
                     }catch(err) {
                         results.senders.error += 1;
                     }
