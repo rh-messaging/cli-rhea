@@ -161,7 +161,6 @@ Connector.prototype.Run = function(opts) {
                         var sent = 0;
                         while(sent < count) {
                             this.senders[i].send({body: 'test message ' + sent});
-                            console.log('sent message from ' + i + ' iteration ' + sent);
                             sent++;
                         }
                     }catch(err) {
