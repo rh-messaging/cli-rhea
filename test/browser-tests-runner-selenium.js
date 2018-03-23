@@ -19,8 +19,8 @@
 
 var webdriverio = require('webdriverio');
 var selenium = require('selenium-standalone');
-var optionsParser = require('../client-lib/optionsParser.js');
-var Utils = require('../client-lib/utils.js');
+var optionsParser = require('../lib/optionsParser.js');
+var Utils = require('../lib/utils.js');
 var driver = null;
 
 var args = require('yargs')

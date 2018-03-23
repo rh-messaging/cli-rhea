@@ -1,9 +1,16 @@
-module.exports = {
+{
     "env": {
         "browser": true,
         "shared-node-browser": true,
         "node": true,
-        "es6": true /*for ArrayBuffer and UInt8Array globals*/
+        "es6": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+          "jsx": true
+        }
     },
     "extends": "eslint:recommended",
     "rules": {
@@ -230,4 +237,4 @@ module.exports = {
         "yield-star-spacing": "error",
         "yoda": "off"
     }
-};
+}

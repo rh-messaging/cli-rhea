@@ -7,7 +7,7 @@ Rhea testing client is javascript client built on [RHEA](https://www.npmjs.com/p
 
 ## Installation
 
-cli-rhea requires [Node.js](https://nodejs.org/) v0.10+ to run. (For using web-executor requires version >=6.4)
+cli-rhea requires [Node.js](https://nodejs.org/) v4+ to run.
 
 Install to global env, if you would like use client as cmd program.
 
