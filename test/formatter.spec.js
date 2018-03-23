@@ -16,7 +16,7 @@
 
 'use strict';
 
-var formatter = require('../client-lib/formatter.js');
+var formatter = require('../lib/formatter.js');
 var expect = require('chai').expect;
 
 describe('Formatter tests', function() {

@@ -16,7 +16,7 @@
 
 'use strict';
 
-var client = require('../client-lib/client.js');
+var client = require('../lib/client.js');
 var expect = require('chai').expect;
 
 describe('Client import', function() {
@@ -57,7 +57,7 @@ describe('Client import', function() {
     });
     describe('"Using node mode for sending/receiving"', function() {
         it('Send by imported client', function(done) {
-            var cliRhea = require('../client-lib/client.js');
+            var cliRhea = require('../lib/client.js');
             cliRhea.Options.msgContent = 'simple text message';
             cliRhea.Options.broker('localhost');
             cliRhea.Options.msgGroupId = 'group-1';
@@ -71,7 +71,7 @@ describe('Client import', function() {
             setTimeout(done, 1500);
         });
         it('Receive by imported client', function(done) {
-            var cliRhea = require('../client-lib/client.js');
+            var cliRhea = require('../lib/client.js');
             cliRhea.Options.broker('admin:admin@localhost:5672');
             cliRhea.Options.address = 'test_queue';
             cliRhea.Options.logMsgs = 'interop';
@@ -81,7 +81,7 @@ describe('Client import', function() {
             setTimeout(done, 1500);
         });
         it('Reply to', function(done) {
-            var cliRhea = require('../client-lib/client.js');
+            var cliRhea = require('../lib/client.js');
             cliRhea.Options.broker('admin:admin@localhost:5672');
             cliRhea.Options.address = 'test_reply_to_queue';
             cliRhea.Options.logMsgs = 'dict';
