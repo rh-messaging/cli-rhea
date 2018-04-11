@@ -1,6 +1,6 @@
 {
   "name": "cli-rhea",
-  "version": "1.2.11",
+  "version": "2.0.0",
   "description": "Client interface built on amqp/rhea lib",
   "scripts": {
     "test": "mocha test/**.spec.js",
@@ -22,10 +22,9 @@
     "cli-rhea-browser-runner": "bin/browser-runner.js"
   },
   "dependencies": {
-    "browserify": "",
     "rhea": "",
     "string-format-js": "",
-    "ws": "",
+    "ws": "^5.0.0",
     "yargs": "7.1.0"
   },
   "keywords": [
