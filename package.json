@@ -1,6 +1,6 @@
 {
   "name": "cli-rhea",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Client interface built on amqp/rhea lib",
   "scripts": {
     "test": "mocha test/**.spec.js",
