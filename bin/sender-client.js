@@ -17,6 +17,6 @@
 
 'use strict';
 
-var SenderClient = require('../lib/senderClient.js').Sender;
-var sender = new SenderClient();
+const SenderClient = require('../lib/senderClient.js').Sender;
+const sender = new SenderClient();
 sender.Run();

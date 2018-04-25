@@ -5,3 +5,4 @@ rhea-nodejs-client.js
 doc
 .nyc_output
 coverage
+package-lock.json

@@ -15,7 +15,7 @@
  */
 'use strict';
 
-var clients = require('cli-rhea');
+const clients = require('cli-rhea');
 clients.Options.address = 'test_queue';
 clients.Options.logMsgs = 'interop';
 

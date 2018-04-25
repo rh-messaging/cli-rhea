@@ -17,6 +17,6 @@
 
 'use strict';
 
-var BrowserTestsRunner = require('../test/browser-tests-runner-selenium.js').BrowserTestsRunner;
-var runner = new BrowserTestsRunner();
+const BrowserTestsRunner = require('../test/browser-tests-runner-selenium.js').BrowserTestsRunner;
+const runner = new BrowserTestsRunner();
 runner.Run();

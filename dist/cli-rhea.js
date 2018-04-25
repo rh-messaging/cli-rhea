@@ -1,4 +1,4 @@
-require=(function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
+require=(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 /*
  * Copyright 2017 Red Hat Inc.
  *
@@ -17,39 +17,39 @@ require=(function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=
 
 'use strict';
 
-var Utils = require('./utils.js');
-var Options = require('./optionsParser.js').ConnectorOptions;
-var options = new Options();
+const Utils = require('./utils.js');
+const Options = require('./optionsParser.js').ConnectorOptions;
+let options = new Options();
 if (typeof window === 'undefined') {
     options.ParseArguments();
     Utils.SetUpClientLogging(options.logLib);
 }
 
-var CoreClient = require('./coreClient.js').CoreClient;
+const CoreClient = require('./coreClient.js').CoreClient;
 if (typeof window === 'undefined') {
     CoreClient.logStats = options.logStats;
 }
 
-var container = require('rhea');
+const container = require('rhea');
 
 /**
  * Dict for results
  */
-var results = {
+const results = {
     'connections': {'open': 0, 'error': 0},
-    'sessions': {'open': 0, 'error' : 0},
     'senders': {'open': 0, 'error': 0},
     'receivers': {'open': 0, 'error': 0},
+    'sent': 0,
+    'received': 0
 };
 
 /**
  * @class Connector
  * Represet client that makes couple of connections, sessions, sender links and receiver links
  */
-var Connector = function() {
+const Connector = function() {
     this.containers = [];
     this.connections = [];
-    this.sessions = [];
     this.senders = [];
     this.receivers = [];
     this.address = '';
@@ -63,13 +63,11 @@ var Connector = function() {
  * @static
  */
 Connector.CloseObjects = function(connector) {
-    for (var i = 0; i < options.count; i++) {
+    for (let i = 0; i < options.count; i++) {
         if(options.objCtrl.indexOf('R') > -1)
             connector.receivers[i] && connector.receivers[i].detach();
         if(options.objCtrl.indexOf('S') > -1)
             connector.senders[i] && connector.senders[i].detach();
-        if(options.objCtrl.indexOf('CE') > -1)
-            connector.sessions[i] && connector.sessions[i].close();
         if(options.objCtrl.indexOf('C') > -1)
             connector.connections[i] && connector.connections[i].close();
     }
@@ -107,7 +105,7 @@ Connector.prototype.Run = function(opts) {
     this.address = options.address ? options.address : 'test_connection';
 
     //create connections and open
-    for(var i = 0; i < options.count; i++) {
+    for(let i = 0; i < options.count; i++) {
         try{
             this.containers[i] = container.create_container({id: container.generate_uuid()});
 
@@ -127,7 +125,25 @@ Connector.prototype.Run = function(opts) {
                 results.senders.open += 1;
             });
 
-            var connectionParams;
+            if (options.objCtrl && options.objCtrl.indexOf('S')) {
+                this.containers[i].on('sendable', function(context) {
+                    const count = 1;
+                    let sent = 0;
+                    while(sent < count && context.sender.sendable()) {
+                        context.sender.send({body: 'test message ' + sent});
+                        sent++;
+                        results.sent++;
+                    }
+                });
+            }
+
+            if (options.objCtrl && options.objCtrl.indexOf('R')) {
+                this.containers[i].on('message', function() {
+                    results.received++;
+                });
+            }
+
+            let connectionParams;
             if(options.websocket) {
                 connectionParams = CoreClient.BuildWebSocketConnectionDict(this.containers[i].websocket_connect(CoreClient.GetWebSocketObject()), options);
             }else {
@@ -137,48 +153,34 @@ Connector.prototype.Run = function(opts) {
             this.connections[i] = this.containers[i].connect(connectionParams);
         }catch(err) {
             results.connections.error += 1;
+            console.error(err);
         }
     }
 
-    //check and create sessions receivers senders
-    if(options.objCtrl && options.objCtrl.indexOf('E')) {
-        //create and open sessions
-        for(i = 0; i < options.count; i++) {
-            var j = 0;
-            try{
-                this.sessions[i] = this.connections[i].create_session();
-                this.sessions[i].begin();
-                results.sessions.open += 1;
-            }catch(err) {
-                results.sessions.error += 1;
-            }
 
-            //create sender
-            if(options.objCtrl && options.objCtrl.indexOf('S') > -1) {
-                for (j; j < options.senderCount; j++) {
-                    try{
-                        this.senders[i] = this.sessions[i].attach_sender(this.address);
-                        var count = 5;
-                        var sent = 0;
-                        while(sent < count) {
-                            this.senders[i].send({body: 'test message ' + sent});
-                            sent++;
-                        }
-                    }catch(err) {
-                        results.senders.error += 1;
-                    }
+    //create sender
+    if(options.objCtrl && options.objCtrl.indexOf('S') > -1) {
+        for (let i = 0; i < options.count; i++) {
+            for (let j = 0; j < options.senderCount; j++) {
+                try{
+                    this.senders[j] = this.connections[i].open_sender(options.address);
+                }catch(err) {
+                    results.senders.error += 1;
+                    console.error(err);
                 }
             }
+        }
+    }
 
-            //create receiver
-            if(options.objCtrl && options.objCtrl.indexOf('R') > -1) {
-                j = 0;
-                for (j; j < options.receiverCount; j++) {
-                    try{
-                        this.receivers[i] = this.sessions[i].attach_receiver(this.address);
-                    }catch(err) {
-                        results.receivers.error += 1;
-                    }
+    //create receiver
+    if(options.objCtrl && options.objCtrl.indexOf('R') > -1) {
+        for (let i = 0; i < options.count; i++) {
+            for (let j = 0; j < options.receiverCount; j++) {
+                try{
+                    this.receivers[j] = this.connections[i].open_receiver(options.address);
+                }catch(err) {
+                    results.receivers.error += 1;
+                    console.error(err);
                 }
             }
         }
@@ -221,15 +223,15 @@ exports.Connector = Connector;
 
 'use strict';
 
-var Utils = require('./utils.js');
-var fs = require('fs');
-var filters = require('rhea').filter;
+const Utils = require('./utils.js');
+const fs = require('fs');
+const filters = require('rhea').filter;
 
 /**
  * @namespace CoreClient
  * @description Support methods for all client types
  */
-var CoreClient = function () {};
+const CoreClient = function () {};
 
 CoreClient.timeout;
 CoreClient.timeoutFunction;
@@ -272,7 +274,7 @@ CoreClient.Close = function (context, closeSleep, isListener) {
  * @param {object} context - event context
  */
 CoreClient.Reply = function (context) {
-    var sender = context.connection.open_sender({target: {address: context.message.reply_to},
+    const sender = context.connection.open_sender({target: {address: context.message.reply_to},
         autosettle: false});
     sender.send(context.message);
     sender.set_drained(true);
@@ -382,7 +384,7 @@ CoreClient.ResetTimeout = function (context, isListener) {
  * @param {object} options - dict with client options
  */
 CoreClient.SetUpSSL = function (options) {
-    var sslDict = {};
+    const sslDict = {};
 
     sslDict.transport = 'tls';
     if (options.sslPrivateKey) sslDict.key = fs.readFileSync(options.sslPrivateKey);
@@ -404,9 +406,9 @@ CoreClient.BuildFailoverHandler = function(options) {
     CoreClient.arrPorts.push(options.port);
 
     try{
-        var connUrls = JSON.parse(options.connUrls);
-        for(var i = 0; i < connUrls.length; i++) {
-            var splitUrl = connUrls[i].split(':');
+        const connUrls = JSON.parse(options.connUrls);
+        for(let i = 0; i < connUrls.length; i++) {
+            const splitUrl = connUrls[i].split(':');
             CoreClient.arrHosts.push(splitUrl[0]);
             CoreClient.arrPorts.push(splitUrl[1]);
         }
@@ -449,11 +451,15 @@ CoreClient.BuildWebSocketConnectionDict = function(ws, options) {
  * @param {object} ws - instance of websocket
  */
 CoreClient.BuildConnectionDict = function(options, ws) {
-    var connectionDict = {};
+    const connectionDict = {};
 
     //destination setting
     if(ws) {
-        connectionDict.connection_details = ws(CoreClient.BuildWebSocketConnString(options), ['binary', 'AMQPWSB10', 'amqp']);
+        const ws_opts = {};
+        if (options.connSsl) {
+            ws_opts.rejectUnauthorized = false;
+        }
+        connectionDict.connection_details = ws(CoreClient.BuildWebSocketConnString(options), ['binary', 'AMQPWSB10', 'amqp'], ws_opts);
     } else if(options.connUrls) {
         //failover
         connectionDict.connection_details = CoreClient.BuildFailoverHandler(options);
@@ -480,14 +486,16 @@ CoreClient.BuildConnectionDict = function(options, ws) {
         connectionDict.reconnect = false;
     }
     //max frame size
-    connectionDict.max_frame_size = options.frameSize;
+    if (options.max_frame_size) {
+        connectionDict.max_frame_size = options.frameSize;
+    }
     //heartbeat
     if (options.heartbeat) {
         connectionDict.idle_time_out = options.heartbeat;
     }
 
     //set unauthorized tls
-    if (options.connSsl) {
+    if (options.connSsl && !options.sslCertificate && !options.sslTrustStore) {
         connectionDict.transport = 'tls';
         connectionDict.rejectUnauthorized = false;
     }
@@ -495,8 +503,8 @@ CoreClient.BuildConnectionDict = function(options, ws) {
     //ssl setting
     if (options.sslCertificate || options.sslTrustStore) {
         connectionDict.rejectUnauthorized = true;
-        var sslOptions = CoreClient.SetUpSSL(options);
-        for (var opt in sslOptions) {
+        const sslOptions = CoreClient.SetUpSSL(options);
+        for (const opt in sslOptions) {
             connectionDict[opt] = sslOptions[opt];
         }
     }
@@ -516,8 +524,8 @@ CoreClient.BuildConnectionDict = function(options, ws) {
  * @param {object} options - dict with client options
  */
 CoreClient.BuildReceiverOptionsDict = function(options) {
-    var receiverOptions = {};
-    var source = {};
+    const receiverOptions = {};
+    const source = {};
     source.address = options.address; //address of queue
     source.distribution_mode = options.recvBrowse ? 'copy' : ''; //message browse options
     source.durable = options.durable; //durable subscription
@@ -539,8 +547,8 @@ CoreClient.BuildReceiverOptionsDict = function(options) {
  * @param {object} options - dict with client options
  */
 CoreClient.BuildSenderOptionsDict = function(options) {
-    var senderOptions = {};
-    var target = {};
+    const senderOptions = {};
+    const target = {};
     target.address = options.address;
     target.durable = options.durable;
 
@@ -562,7 +570,8 @@ CoreClient.BuildSenderOptionsDict = function(options) {
  * @param {object} options - dict with client options
  */
 CoreClient.BuildWebSocketConnString = function(options) {
-    var connTemplate = 'ws://%BROKER:%PORT';
+    let connTemplate = '%PROTOCOL://%BROKER:%PORT';
+    connTemplate = options.connSsl ? connTemplate.replace('%PROTOCOL', 'wss') : connTemplate.replace('%PROTOCOL', 'ws');
     return connTemplate.replace('%BROKER', options.url).replace('%PORT', options.port);
 };
 
@@ -617,7 +626,7 @@ exports.CoreClient = CoreClient;
  * @return {object} replaced value
  * @memberof formatter
  */
-var Replacer = function(key, value) {
+const Replacer = function(key, value) {
     if (value === undefined) {
         return null;
     }
@@ -631,7 +640,7 @@ var Replacer = function(key, value) {
  * @return {string} converted string from bin array
  * @memberof formatter
  */
-var BinToString = function(binArray) {
+const BinToString = function(binArray) {
     return String.fromCharCode.apply(String, binArray);
 };
 
@@ -642,7 +651,7 @@ var BinToString = function(binArray) {
  * @return {string} user id in string format
  * @memberof formatter
  */
-var CastUserId = function(userID) {
+const CastUserId = function(userID) {
     if(typeof userID === 'string') {
         return userID;
     }else if (typeof userID === 'object') {
@@ -658,7 +667,7 @@ var CastUserId = function(userID) {
  * @return {string} idString without ID: prefix
  * @memberof formatter
  */
-var RemoveIDPrefix = function(idString) {
+const RemoveIDPrefix = function(idString) {
     if (idString)
         return idString.replace('ID:', '');
     return idString;
@@ -671,7 +680,7 @@ var RemoveIDPrefix = function(idString) {
  * @return {string} address without topic:// prefix
  * @memberof formatter
  */
-var RemoveTopicPrefix = function(address) {
+const RemoveTopicPrefix = function(address) {
     if (address)
         return address.replace('topic://', '');
     return address;
@@ -684,7 +693,7 @@ var RemoveTopicPrefix = function(address) {
  * @return {number} roundet value
  * @memberof formatter
  */
-var RoundFloatNumber = function(number) {
+const RoundFloatNumber = function(number) {
     return Math.round(number*100000)/100000;
 };
 
@@ -695,14 +704,14 @@ var RoundFloatNumber = function(number) {
  * @return {Object} fixed object
  * @memberof formatter
  */
-var FixInteropValues = function(values) {
+const FixInteropValues = function(values) {
     if(Array.isArray(values)) {
-        for(var i = 0; i < values.length; i++) {
+        for(let i = 0; i < values.length; i++) {
             values[i] = FixInteropValues(values[i]);
         }
         return values;
     }else if(values instanceof Object) {
-        for (var key in values) {
+        for (const key in values) {
             if (values.hasOwnProperty(key)) {
                 values[key] = FixInteropValues(values[key]);
             }
@@ -724,8 +733,8 @@ var FixInteropValues = function(values) {
  * @return {object} formated dict
  * @memberof formatter
  */
-var RenameKeysInDictInterop = function (dict) {
-    var workDict = {};
+const RenameKeysInDictInterop = function (dict) {
+    const workDict = {};
     //amqp header
     workDict['durable'] = dict['durable'];
     workDict['priority'] = dict['priority'];
@@ -771,9 +780,9 @@ var RenameKeysInDictInterop = function (dict) {
  * @return {object} formated dict
  * @memberof formatter
  */
-var RenameKeysInDictStandard = function (dict) {
+const RenameKeysInDictStandard = function (dict) {
 
-    var workDict = {};
+    const workDict = {};
     //amqp header
     workDict['durable'] = dict['durable'];
     workDict['priority'] = dict['priority'];
@@ -819,7 +828,7 @@ var RenameKeysInDictStandard = function (dict) {
  * @return {string} string with replaced python types
  * @memberof formatter
  */
-var ReplaceWithPythonType = function (strMessage) {
+const ReplaceWithPythonType = function (strMessage) {
     return strMessage.replace(/null/g, 'None').replace(/true/g, 'True').replace(/false/g, 'False').replace(/undefined/g, 'None').replace(/\{\}/g, 'None');
 };
 
@@ -833,7 +842,7 @@ var ReplaceWithPythonType = function (strMessage) {
  * @return {string} formated message dict
  * @memberof formatter
  */
-var FormatBody = function (message) {
+const FormatBody = function (message) {
     return ReplaceWithPythonType(JSON.stringify(message.body, Replacer));
 };
 
@@ -844,7 +853,7 @@ var FormatBody = function (message) {
  * @return {string} formated message dict
  * @memberof formatter
  */
-var FormatAsDict = function (message) {
+const FormatAsDict = function (message) {
     return ReplaceWithPythonType(JSON.stringify(RenameKeysInDictStandard(message), Replacer));
 };
 
@@ -855,7 +864,7 @@ var FormatAsDict = function (message) {
  * @return {string} formated message dict
  * @memberof formatter
  */
-var FormatAsInteropDict = function (message) {
+const FormatAsInteropDict = function (message) {
     return ReplaceWithPythonType(JSON.stringify(RenameKeysInDictInterop(message), Replacer));
 };
 
@@ -866,7 +875,7 @@ var FormatAsInteropDict = function (message) {
  * @return {string} formated message dict
  * @memberof formatter
  */
-var FormatAsJson = function (message) {
+const FormatAsJson = function (message) {
     return JSON.stringify(RenameKeysInDictInterop(message), Replacer);
 };
 
@@ -877,10 +886,10 @@ var FormatAsJson = function (message) {
  * @return {string} formated message dict
  * @memberof formatter
  */
-var FormatAsUpstream = function (message) {
-    var strResult = '';
-    var messageDict = RenameKeysInDictStandard(message);
-    for (var key in messageDict) {
+const FormatAsUpstream = function (message) {
+    let strResult = '';
+    const messageDict = RenameKeysInDictStandard(message);
+    for (const key in messageDict) {
         strResult += key + ': ' + JSON.stringify(messageDict[key]) + ', ';
     }
     strResult = strResult.substring(0, strResult.length-1);
@@ -894,7 +903,7 @@ var FormatAsUpstream = function (message) {
  * @return {string} formated err as string
  * @memberof formatter
  */
-var FormatError = function (errMsg) {
+const FormatError = function (errMsg) {
     return '{\'cause\': \'%s\'}'.replace('%s', errMsg);
 };
 
@@ -905,7 +914,7 @@ var FormatError = function (errMsg) {
  * @return {string} formated stats as string
  * @memberof formatter
  */
-var FormatStats = function (message) {
+const FormatStats = function (message) {
     return 'STATS \'%s\''.replace('%s', ReplaceWithPythonType(message));
 };
 
@@ -948,8 +957,8 @@ exports.FormatStats = FormatStats;
  */
 'use strict';
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var yargs = require('yargs');
-var utils = require('./utils.js');
+const yargs = require('yargs');
+const utils = require('./utils.js');
 
 /**
  * @function parse
@@ -999,7 +1008,7 @@ function ParseDataType (data) {
 * @return vaue of map item
 */
 function ParseMapItem (data) {
-    var listData = data.split('=');
+    let listData = data.split('=');
     if(listData.length === 1) {
         listData = data.split('~');
         listData[1] = ParseDataType('~' + listData[1].toString());
@@ -1015,11 +1024,10 @@ function ParseMapItem (data) {
  * @param {Object} argument - argument for parsing
  */
 function castMapProperty(argument) {
-    var pair;
-    var i;
-    var properties = {};
+    let pair;
+    const properties = {};
     if ((typeof argument) === 'object') {
-        for (i = 0; i < argument.length; i++) {
+        for (let i = 0; i < argument.length; i++) {
             pair = ParseMapItem(argument[i]);
             properties[pair[0]] = pair[1];
         }
@@ -1036,10 +1044,9 @@ function castMapProperty(argument) {
  * @param {Object} argument - argument for parsing
  */
 function castListProperty(argument) {
-    var i;
-    var properties = [];
+    const properties = [];
     if((typeof argument) === 'object') {
-        for(i = 0; i < argument.length; i++) {
+        for(let i = 0; i < argument.length; i++) {
             properties[i] = ParseDataType(argument[i]);
         }
     }else if ((typeof argument) === 'string') {
@@ -1054,7 +1061,7 @@ function castListProperty(argument) {
  * @param {Object} argument - argument for parsing
  */
 function castBoolProperty(argument) {
-    var returnValue = false;
+    let returnValue = false;
     if (typeof argument === 'boolean') {
         returnValue = argument;
     }else{
@@ -1067,7 +1074,7 @@ function castBoolProperty(argument) {
  * @class ConnectionOptions
  * @description Class to parse and store connection options
  */
-var ConnectionOptions = function () {
+const ConnectionOptions = function () {
     this.arrHosts = [];
     this.arrPorts = [];
     this.connProperties = {};
@@ -1079,7 +1086,7 @@ var ConnectionOptions = function () {
  * @memberof ConnectionOptions
  */
 ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
-    var argsProcessor = yargs
+    const argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'conn-urls':                    { describe: 'broker adresses and ports for failover conection e.g. ["host1:port", "host2:port"]', type: 'string'},
@@ -1095,14 +1102,14 @@ ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
             'conn-ssl-trust-store':         { describe: 'path to client trust store (PEM format), conn-ssl-certificate must be given', type: 'string' },
             'conn-ssl-verify-peer':         { default: false, describe: 'verifies server certificate, conn-ssl-certificate and trusted db path needs to be specified (PEM format)', type: 'boolean'},
             'conn-ssl-verify-peer-name':    { default: false, describe: 'verifies connection url against server hostname', type: 'boolean'},
-            'conn-max-frame-size':          { default: 4294967295, describe: 'defines max frame size for connection', type: 'uint'},
+            'conn-max-frame-size':          { default: undefined, describe: 'defines max frame size for connection', type: 'uint'},
             'conn-web-socket':              { default: false, describe: 'use websocket as transport layer', type: ['boolean', 'string']},
             'conn-property':                { describe: 'Sets connection property map item'},
         })
         .strict()
         .help('help');
 
-    var args = parse(argsProcessor, listArgs);
+    const args = parse(argsProcessor, listArgs);
 
     this.connUrls = args['conn-urls'];
     this.reconnect = castBoolProperty(args['conn-reconnect']);
@@ -1128,7 +1135,7 @@ ConnectionOptions.prototype.ParseConnectionOptions = function(listArgs) {
  * @description Class to parse and store together options
  * @extends ConnectionOptions
  */
-var BasicOptions = function () {};
+const BasicOptions = function () {};
 
 BasicOptions.prototype = Object.create(ConnectionOptions.prototype);
 
@@ -1138,7 +1145,7 @@ BasicOptions.prototype = Object.create(ConnectionOptions.prototype);
  * @memberof BasicOptions
  */
 BasicOptions.prototype.ParseBasic = function(listArgs) {
-    var argsProcessor = yargs
+    const argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'broker':               { alias: 'b', default: 'localhost:5672', describe: 'address of machine with broker (i.e. admin:admin@broker-address:5672)'},
@@ -1150,7 +1157,7 @@ BasicOptions.prototype.ParseBasic = function(listArgs) {
             'log-stats':            { describe: 'report various statistic/debug information', choices: ['endpoints']},
             'link-durable':         { default: false, describe: 'durable link subscription', type: 'boolean'},
         });
-    var args = parse(argsProcessor, listArgs);
+    const args = parse(argsProcessor, listArgs);
     this.ParseConnectionOptions(listArgs);
 
     this.address = args['address'];
@@ -1162,11 +1169,11 @@ BasicOptions.prototype.ParseBasic = function(listArgs) {
     this.logStats = args['log-stats'];
 
     //parse connection information
-    var add = args['broker'];
-    var regex = /(\w+)(:*)(\w*)@/gi;
-    var regexIpv6 = /\[(.*?)\]/gi;
-    var res = regexIpv6.test(add) ? add.match(regexIpv6)[0].replace(/\[/, '').replace(/\]/,'') : null;
-    var splitAdd;
+    const add = args['broker'];
+    const regex = /(\w+)(:*)(\w*)@/gi;
+    const regexIpv6 = /\[(.*?)\]/gi;
+    const res = regexIpv6.test(add) ? add.match(regexIpv6)[0].replace(/\[/, '').replace(/\]/,'') : null;
+    let splitAdd;
     if(regex.test(add)) {
         splitAdd = add.split('@');
         this.username = splitAdd[0].split(':')[0] ? splitAdd[0].split(':')[0] : '';
@@ -1192,7 +1199,7 @@ BasicOptions.prototype.ParseBasic = function(listArgs) {
  * @description Class to parse and store together options for sender and receiver
  * @extends BasicOptions
  */
-var SenderReceiverOptions = function () {};
+const SenderReceiverOptions = function () {};
 
 SenderReceiverOptions.prototype = Object.create(BasicOptions.prototype);
 
@@ -1202,7 +1209,7 @@ SenderReceiverOptions.prototype = Object.create(BasicOptions.prototype);
  * @memberof SenderReceiverOptions
  */
 SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function(listArgs) {
-    var argsProcessor = yargs
+    const argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'duration':                 { default: 0, describe: 'duration of sending or receiving messages', type: 'uint'},
@@ -1210,7 +1217,7 @@ SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function(listArgs
             'link-at-most-once':        { default: false, describe: 'best-effort delivery', type: 'boolean'},
             'link-at-least-once':       { default: false, describe: 'reliable delivery', type: 'boolean'},
         });
-    var args = parse(argsProcessor, listArgs);
+    const args = parse(argsProcessor, listArgs);
     this.ParseBasic(listArgs);
 
     this.linkAtMostOnce = args['link-at-most-once'];
@@ -1226,7 +1233,7 @@ SenderReceiverOptions.prototype.ParseSenderReceiverArguments = function(listArgs
  * @description Class to parse and store ConnectorClient options
  * @extends BasicOptions
  */
-var ConnectorOptions = function () {};
+const ConnectorOptions = function () {};
 
 ConnectorOptions.prototype = Object.create(BasicOptions.prototype);
 
@@ -1236,14 +1243,14 @@ ConnectorOptions.prototype = Object.create(BasicOptions.prototype);
  * @memberof ConnectorOptions
  */
 ConnectorOptions.prototype.ParseArguments = function(listArgs) {
-    var argsProcessor = yargs
+    const argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'obj-ctrl': { default: 'C', describe: 'Optional creation object control based on <object-ids>, syntax C/E/S/R stands for Connection, sEssion, Sender, Receiver'},
             'sender-count':                { default: 1, describe: 'count of senders', type: 'uint'},
             'receiver-count':                { default: 1, describe: 'count of receivers', type: 'uint'},
         });
-    var args = parse(argsProcessor, listArgs);
+    const args = parse(argsProcessor, listArgs);
     this.ParseBasic(listArgs);
 
     this.objCtrl = args['obj-ctrl'];
@@ -1258,7 +1265,7 @@ ConnectorOptions.prototype.ParseArguments = function(listArgs) {
  * @description Class to parse and store Receiverclient options
  * @extends SenderReceiverOptions
  */
-var ReceiverOptions = function () {
+const ReceiverOptions = function () {
     this.recvBrowse = false;
 };
 
@@ -1270,7 +1277,7 @@ ReceiverOptions.prototype = Object.create(SenderReceiverOptions.prototype);
  * @memberof ReceiverOptions
  */
 ReceiverOptions.prototype.ParseArguments = function(listArgs) {
-    var argsProcessor = yargs
+    const argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'msg-selector':     { alias: 'recv-selector', describe: 'sql selector to broker'},
@@ -1281,7 +1288,7 @@ ReceiverOptions.prototype.ParseArguments = function(listArgs) {
             'recv-listen':      { default: false, describe: 'enable receiver listen (P2P)', type: ['boolean', 'string']},
             'recv-listen-port': { default: 5672, describe: 'define port for local listening', type: ['uint']},
         });
-    var args = parse(argsProcessor, listArgs);
+    const args = parse(argsProcessor, listArgs);
 
     this.ParseSenderReceiverArguments(listArgs);
     this.msgSelector = args['msg-selector'];
@@ -1300,7 +1307,7 @@ ReceiverOptions.prototype.ParseArguments = function(listArgs) {
  * @description Class to parse and store SenderClient options
  * @extends SenderReceiverOptions
  */
-var SenderOptions = function () {
+const SenderOptions = function () {
     this.listContent = [];
     this.mapContent = {};
     this.application_properties = {};
@@ -1315,7 +1322,7 @@ SenderOptions.prototype = Object.create(SenderReceiverOptions.prototype);
  * @memberof SenderOptions
  */
 SenderOptions.prototype.ParseArguments = function(listArgs) {
-    var argsProcessor = yargs
+    const argsProcessor = yargs
         .usage('$0 [args]')
         .options({
             'msg-id':                   { alias: 'i', describe: 'message id'},
@@ -1342,7 +1349,7 @@ SenderOptions.prototype.ParseArguments = function(listArgs) {
             'reactor-auto-settle-off':  { default: false, describe: 'disable auto settling', type: 'boolean'},
             'anonymous':                { default: false, describe: 'send message by connection level anonymous sender', type: 'boolean'},
         });
-    var args = parse(argsProcessor, listArgs);
+    const args = parse(argsProcessor, listArgs);
 
     this.ParseSenderReceiverArguments(listArgs);
 
@@ -1365,7 +1372,7 @@ SenderOptions.prototype.ParseArguments = function(listArgs) {
     this.anonymous = args['anonymous'];
 
     if(args['msg-content-from-file']) {
-        var ReadContentFromFile = utils.ReadContentFromFile;
+        const ReadContentFromFile = utils.ReadContentFromFile;
         this.msgContentFromFile = ReadContentFromFile(args['msg-content-from-file']);
     }
 
@@ -1406,27 +1413,27 @@ exports.ConnectorOptions = ConnectorOptions;
 
 'use strict';
 
-var Utils = require('./utils.js');
-var Options = require('./optionsParser.js').ReceiverOptions;
-var options = new Options();
+const Utils = require('./utils.js');
+const Options = require('./optionsParser.js').ReceiverOptions;
+let options = new Options();
 if (typeof window === 'undefined') {
     options.ParseArguments();
     Utils.SetUpClientLogging(options.logLib);
 }
 
-var CoreClient = require('./coreClient.js').CoreClient;
+const CoreClient = require('./coreClient.js').CoreClient;
 if (typeof window === 'undefined') {
     CoreClient.logStats = options.logStats;
 }
 
-var container = require('rhea');
+const container = require('rhea');
 
 /**
  * @class Receiver
  * @description Class represents Receiver client
  * @extends rhea.container
  */
-var Receiver = function () {
+const Receiver = function () {
     this.received = 0;
     this.replyToSent = 0;
     this.expected = 0;
@@ -1498,7 +1505,7 @@ var Receiver = function () {
     */
     function nextRequest(context) {
         if (context.container.received < options.count) {
-            var timeout = Utils.CalculateDelay(options.count, options.duration);
+            const timeout = Utils.CalculateDelay(options.count, options.duration);
             context.container.timer_task = setTimeout(
                 function(context) {
                     context.receiver.add_credit(1);
@@ -1599,7 +1606,7 @@ var Receiver = function () {
 
         try{
             if(options.websocket) {
-                var ws = this.websocket_connect(CoreClient.GetWebSocketObject());
+                const ws = this.websocket_connect(CoreClient.GetWebSocketObject());
                 this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
                     .open_receiver(CoreClient.BuildReceiverOptionsDict(options));
             }else {
@@ -1650,28 +1657,28 @@ exports.Receiver = Receiver;
 
 'use strict';
 
-var Utils = require('./utils.js');
-var Options = require('./optionsParser.js').SenderOptions;
+const Utils = require('./utils.js');
+const Options = require('./optionsParser.js').SenderOptions;
 require('string-format-js');
-var options = new Options();
+let options = new Options();
 if (typeof window === 'undefined') {
     options.ParseArguments();
     Utils.SetUpClientLogging(options.logLib);
 }
 
-var CoreClient = require('./coreClient.js').CoreClient;
+const CoreClient = require('./coreClient.js').CoreClient;
 if (typeof window === 'undefined') {
     CoreClient.logStats = options.logStats;
 }
 
-var container = require('rhea');
+const container = require('rhea');
 
 /**
  * @class Sender
  * @description Class represents Sender client
  * @extends rhea.container
  */
-var Sender = function() {
+const Sender = function() {
     this.confirmed = 0;
     this.sent = 0;
     this.ts;
@@ -1689,7 +1696,7 @@ var Sender = function() {
     function createMessage(options, sentId) {
         //message initialization
         try {
-            var message = {};
+            const message = {};
             message.body = {};
             message.application_properties = {};
             message.message_annotations = {};
@@ -1753,7 +1760,7 @@ var Sender = function() {
         if (options.duration > 0) {
             nextRequest(context);
         } else {
-            var message = undefined;
+            let message = undefined;
             while ((options.anonymous || (context.sender && context.sender.sendable())) && context.container.sent < options.count) {
                 context.container.sent++;
                 message = createMessage(options, context.container.sent - 1);
@@ -1783,7 +1790,7 @@ var Sender = function() {
     */
     function nextRequest(context) {
         context.container.sent++;
-        var message = createMessage(options, context.container.confirmed);
+        const message = createMessage(options, context.container.confirmed);
 
         if (options.anonymous) {
             context.connection.send(message);
@@ -1812,7 +1819,7 @@ var Sender = function() {
             CoreClient.Close(context, options.closeSleep, false);
         } else if (options.duration > 0) {
             if (context.container.confirmed < options.count) {
-                var timeout = Utils.CalculateDelay(options.count, options.duration);
+                const timeout = Utils.CalculateDelay(options.count, options.duration);
                 context.container.timer_task = setTimeout(nextRequest, timeout, context);
             } else {
                 clearTimeout(context.container.timer_task);
@@ -1894,11 +1901,11 @@ var Sender = function() {
         try {
             //run sender client
             if (options.websocket) {
-                var ws = this.websocket_connect(CoreClient.GetWebSocketObject());
+                const ws = this.websocket_connect(CoreClient.GetWebSocketObject());
                 this.connect(CoreClient.BuildWebSocketConnectionDict(ws, options))
                     .open_sender(CoreClient.BuildSenderOptionsDict(options));
             } else {
-                var connection = this.connect(CoreClient.BuildAmqpConnectionOptionsDict(options));
+                const connection = this.connect(CoreClient.BuildAmqpConnectionOptionsDict(options));
                 if (!options.anonymous) {
                     connection.attach_sender(CoreClient.BuildSenderOptionsDict(options));
                 }
@@ -1937,8 +1944,8 @@ exports.Sender = Sender;
  */
 
 'use strict';
-var formatter = require('./formatter.js');
-var fs = require('fs');
+const formatter = require('./formatter.js');
+const fs = require('fs');
 
 /**
 * @function PrintMessage
@@ -1947,8 +1954,8 @@ var fs = require('fs');
 * @param {string} format - format type of message out
 * @memberof Utils
 */
-var PrintMessage = function (message, format) {
-    var printFunction = console.log;
+const PrintMessage = function (message, format) {
+    let printFunction = console.log;
     if(typeof window !== 'undefined') {
         printFunction = AppendHtmlData;
     }
@@ -1971,7 +1978,7 @@ var PrintMessage = function (message, format) {
 * @param {string} message - message dict
 * @memberof Utils
 */
-var AppendHtmlData = function(message) {
+const AppendHtmlData = function(message) {
     var node = document.createTextNode(message);
     var div = document.createElement('div');
     div.appendChild(node);
@@ -1985,9 +1992,9 @@ var AppendHtmlData = function(message) {
 * @return {string} content from file
 * @memberof Utils
 */
-var ReadContentFromFile = function (path) {
+const ReadContentFromFile = function (path) {
     try{
-        var data = fs.readFileSync(path, 'utf8');
+        const data = fs.readFileSync(path, 'utf8');
         return data;
     }catch(err) {
         throw new ErrorHandler(err);
@@ -2000,7 +2007,7 @@ var ReadContentFromFile = function (path) {
 * @return {integer} time in ms
 * @memberof Utils
 */
-var GetTime = function () {
+const GetTime = function () {
     return (0.001 * new Date().getTime());
 };
 
@@ -2012,7 +2019,7 @@ var GetTime = function () {
 * @return {integer} delay time in ms
 * @memberof Utils
 */
-var CalculateDelay = function(count, duration) {
+const CalculateDelay = function(count, duration) {
     if((duration > 0) && (count > 0)) {
         return 1.0 * duration / count;
     }
@@ -2025,7 +2032,7 @@ var CalculateDelay = function(count, duration) {
 * @param {string} logLevel - type to logging
 * @memberof Utils
 */
-var SetUpClientLogging = function (logLevel) {
+const SetUpClientLogging = function (logLevel) {
     if (!logLevel) {
         return;
     }
@@ -2048,7 +2055,7 @@ var SetUpClientLogging = function (logLevel) {
 * @param {object} context - event context
 * @memberof Utils
 */
-var PrintStatistic = function (context) {
+const PrintStatistic = function (context) {
     console.log(formatter.FormatStats(StringifyStatObject(context)));
 };
 
@@ -2059,9 +2066,9 @@ var PrintStatistic = function (context) {
 * @return {object} dict
 * @memberof Utils
 */
-var StringifyStatObject = function(statistics) {
-    var cache = [];
-    var str = JSON.stringify(statistics,
+const StringifyStatObject = function(statistics) {
+    let cache = [];
+    const str = JSON.stringify(statistics,
         //filter
         function(key, value) {
             if (typeof value === 'object' && value !== null) {
@@ -2089,8 +2096,8 @@ var StringifyStatObject = function(statistics) {
 * @param {object} message - string error message
 * @memberof Utils
 */
-var ErrorHandler = function (message) {
-    var m = message;
+const ErrorHandler = function (message) {
+    let m = message;
     if (typeof message === 'object') {
         m = JSON.stringify(message);
     }
@@ -13894,16 +13901,18 @@ function connection_details(options) {
     return details;
 }
 
-var aliases = ['container_id',
-               'hostname',
-               'max_frame_size',
-               'channel_max',
-               'idle_time_out',
-               'outgoing_locales',
-               'incoming_locales',
-               'offered_capabilities',
-               'desired_capabilities',
-               'properties'];
+var aliases = [
+    'container_id',
+    'hostname',
+    'max_frame_size',
+    'channel_max',
+    'idle_time_out',
+    'outgoing_locales',
+    'incoming_locales',
+    'offered_capabilities',
+    'desired_capabilities',
+    'properties'
+];
 
 function remote_property_shortcut(name) {
     return function() { return this.remote.open ? this.remote.open[name] : undefined; };
@@ -14074,9 +14083,11 @@ Connection.prototype.init = function (socket) {
         if (!mechanisms) {
             var username = this.get_option('username');
             var password = this.get_option('password');
+            var token = this.get_option('token');
             if (username) {
                 mechanisms = sasl.client_mechanisms();
                 if (password) mechanisms.enable_plain(username, password);
+                else if (token) mechanisms.enable_xoauth2(username, token);
                 else mechanisms.enable_anonymous(username);
             }
         }
@@ -14249,7 +14260,13 @@ Connection.prototype.idle = function () {
 };
 
 Connection.prototype.on_error = function (e) {
-    console.warn('[' + this.options.id + '] error: ' + e);
+    var error_data = {
+        type: e.type,
+        message: e.message,
+        error: e.error,
+        readyState: (e.target !== undefined) ? e.target.readyState : undefined
+    };
+    console.warn('[' + this.options.id + '] error: ' + JSON.stringify(error_data));
     this._disconnected();
 };
 
@@ -14550,6 +14567,7 @@ Container.prototype.websocket_connect = ws.connect;
 Container.prototype.filter = require('./filter.js');
 Container.prototype.types = require('./types.js');
 Container.prototype.message = require('./message.js');
+Container.prototype.sasl = sasl;
 
 module.exports = new Container();
 
@@ -14880,124 +14898,133 @@ function define_frame(type, def) {
     by_descriptor[c.descriptor.symbolic] = c;
 }
 
-var open = {name: 'open',
-            code: 0x10,
-            fields: [
-                 {name:'container_id', type:'string', mandatory:true},
-                 {name:'hostname', type:'string'},
-                 {name:'max_frame_size', type:'uint', default_value:4294967295},
-                 {name:'channel_max', type:'ushort', default_value:65535},
-                 {name:'idle_time_out', type:'uint'},
-                 {name:'outgoing_locales', type:'symbol', multiple:true},
-                 {name:'incoming_locales', type:'symbol', multiple:true},
-                 {name:'offered_capabilities', type:'symbol', multiple:true},
-                 {name:'desired_capabilities', type:'symbol', multiple:true},
-                 {name:'properties', type:'symbolic_map'}
-            ]
-           };
+var open = {
+    name: 'open',
+    code: 0x10,
+    fields: [
+        {name: 'container_id', type: 'string', mandatory: true},
+        {name: 'hostname', type: 'string'},
+        {name: 'max_frame_size', type: 'uint', default_value: 4294967295},
+        {name: 'channel_max', type: 'ushort', default_value: 65535},
+        {name: 'idle_time_out', type: 'uint'},
+        {name: 'outgoing_locales', type: 'symbol', multiple: true},
+        {name: 'incoming_locales', type: 'symbol', multiple: true},
+        {name: 'offered_capabilities', type: 'symbol', multiple: true},
+        {name: 'desired_capabilities', type: 'symbol', multiple: true},
+        {name: 'properties', type: 'symbolic_map'}
+    ]
+};
 
-var begin = {name:'begin',
-             code:0x11,
-             fields:[
-                 {name:'remote_channel', type:'ushort'},
-                 {name:'next_outgoing_id', type:'uint', mandatory:true},
-                 {name:'incoming_window', type:'uint', mandatory:true},
-                 {name:'outgoing_window', type:'uint', mandatory:true},
-                 {name:'handle_max', type:'uint', default_value:'4294967295'},
-                 {name:'offered_capabilities', type:'symbol', multiple:true},
-                 {name:'desired_capabilities', type:'symbol', multiple:true},
-                 {name:'properties', type:'symbolic_map'}
-             ]
-            };
+var begin = {
+    name: 'begin',
+    code: 0x11,
+    fields:[
+        {name: 'remote_channel', type: 'ushort'},
+        {name: 'next_outgoing_id', type: 'uint', mandatory: true},
+        {name: 'incoming_window', type: 'uint', mandatory: true},
+        {name: 'outgoing_window', type: 'uint', mandatory: true},
+        {name: 'handle_max', type: 'uint', default_value: '4294967295'},
+        {name: 'offered_capabilities', type: 'symbol', multiple: true},
+        {name: 'desired_capabilities', type: 'symbol', multiple: true},
+        {name: 'properties', type: 'symbolic_map'}
+    ]
+};
 
-var attach = {name:'attach',
-              code:0x12,
-              fields:[
-                  {name:'name', type:'string', mandatory:true},
-                  {name:'handle', type:'uint', mandatory:true},
-                  {name:'role', type:'boolean', mandatory:true},
-                  {name:'snd_settle_mode', type:'ubyte', default_value:2},
-                  {name:'rcv_settle_mode', type:'ubyte', default_value:0},
-                  {name:'source', type:'*'},
-                  {name:'target', type:'*'},
-                  {name:'unsettled', type:'map'},
-                  {name:'incomplete_unsettled', type:'boolean', default_value:false},
-                  {name:'initial_delivery_count', type:'uint'},
-                  {name:'max_message_size', type:'ulong'},
-                  {name:'offered_capabilities', type:'symbol', multiple:true},
-                  {name:'desired_capabilities', type:'symbol', multiple:true},
-                  {name:'properties', type:'symbolic_map'}
-              ]
-             };
+var attach = {
+    name: 'attach',
+    code: 0x12,
+    fields:[
+        {name: 'name', type: 'string', mandatory: true},
+        {name: 'handle', type: 'uint', mandatory: true},
+        {name: 'role', type: 'boolean', mandatory: true},
+        {name: 'snd_settle_mode', type: 'ubyte', default_value: 2},
+        {name: 'rcv_settle_mode', type: 'ubyte', default_value: 0},
+        {name: 'source', type: '*'},
+        {name: 'target', type: '*'},
+        {name: 'unsettled', type: 'map'},
+        {name: 'incomplete_unsettled', type: 'boolean', default_value: false},
+        {name: 'initial_delivery_count', type: 'uint'},
+        {name: 'max_message_size', type: 'ulong'},
+        {name: 'offered_capabilities', type: 'symbol', multiple: true},
+        {name: 'desired_capabilities', type: 'symbol', multiple: true},
+        {name: 'properties', type: 'symbolic_map'}
+    ]
+};
 
-var flow = {name:'flow',
-            code:0x13,
-            fields:[
-                {name:'next_incoming_id', type:'uint'},
-                {name:'incoming_window', type:'uint', mandatory:true},
-                {name:'next_outgoing_id', type:'uint', mandatory:true},
-                {name:'outgoing_window', type:'uint', mandatory:true},
-                {name:'handle', type:'uint'},
-                {name:'delivery_count', type:'uint'},
-                {name:'link_credit', type:'uint'},
-                {name:'available', type:'uint'},
-                {name:'drain', type:'boolean', default_value:false},
-                {name:'echo', type:'boolean', default_value:false},
-                {name:'properties', type:'symbolic_map'}
-            ]
-           };
+var flow = {
+    name: 'flow',
+    code: 0x13,
+    fields:[
+        {name: 'next_incoming_id', type: 'uint'},
+        {name: 'incoming_window', type: 'uint', mandatory: true},
+        {name: 'next_outgoing_id', type: 'uint', mandatory: true},
+        {name: 'outgoing_window', type: 'uint', mandatory: true},
+        {name: 'handle', type: 'uint'},
+        {name: 'delivery_count', type: 'uint'},
+        {name: 'link_credit', type: 'uint'},
+        {name: 'available', type: 'uint'},
+        {name: 'drain', type: 'boolean', default_value: false},
+        {name: 'echo', type: 'boolean', default_value: false},
+        {name: 'properties', type: 'symbolic_map'}
+    ]
+};
 
-var transfer = {name:'transfer',
-                code:0x14,
-                fields:[
-                    {name:'handle', type:'uint', mandatory:true},
-                    {name:'delivery_id', type:'uint'},
-                    {name:'delivery_tag', type:'binary'},
-                    {name:'message_format', type:'uint'},
-                    {name:'settled', type:'boolean'},
-                    {name:'more', type:'boolean', default_value:false},
-                    {name:'rcv_settle_mode', type:'ubyte'},
-                    {name:'state', type:'delivery_state'},
-                    {name:'resume', type:'boolean', default_value:false},
-                    {name:'aborted', type:'boolean', default_value:false},
-                    {name:'batchable', type:'boolean', default_value:false}
-                ]
-               };
+var transfer = {
+    name: 'transfer',
+    code: 0x14,
+    fields:[
+        {name: 'handle', type: 'uint', mandatory: true},
+        {name: 'delivery_id', type: 'uint'},
+        {name: 'delivery_tag', type: 'binary'},
+        {name: 'message_format', type: 'uint'},
+        {name: 'settled', type: 'boolean'},
+        {name: 'more', type: 'boolean', default_value: false},
+        {name: 'rcv_settle_mode', type: 'ubyte'},
+        {name: 'state', type: 'delivery_state'},
+        {name: 'resume', type: 'boolean', default_value: false},
+        {name: 'aborted', type: 'boolean', default_value: false},
+        {name: 'batchable', type: 'boolean', default_value: false}
+    ]
+};
 
-var disposition = {name:'disposition',
-                   code:0x15,
-                   fields:[
-                       {name:'role', type:'boolean', mandatory:true},
-                       {name:'first', type:'uint', mandatory:true},
-                       {name:'last', type:'uint'},
-                       {name:'settled', type:'boolean', default_value:false},
-                       {name:'state', type:'*'},
-                       {name:'batchable', type:'boolean', default_value:false}
-                   ]
-                  };
+var disposition = {
+    name: 'disposition',
+    code: 0x15,
+    fields:[
+        {name: 'role', type: 'boolean', mandatory: true},
+        {name: 'first', type: 'uint', mandatory: true},
+        {name: 'last', type: 'uint'},
+        {name: 'settled', type: 'boolean', default_value: false},
+        {name: 'state', type: '*'},
+        {name: 'batchable', type: 'boolean', default_value: false}
+    ]
+};
 
-var detach = {name: 'detach',
-             code: 0x16,
-              fields: [
-                  {name:'handle', type:'uint', mandatory:true},
-                  {name:'closed', type:'boolean', default_value:false},
-                  {name:'error', type:'error'}
-              ]
-             };
+var detach = {
+    name: 'detach',
+    code: 0x16,
+    fields: [
+        {name: 'handle', type: 'uint', mandatory: true},
+        {name: 'closed', type: 'boolean', default_value: false},
+        {name: 'error', type: 'error'}
+    ]
+};
 
-var end = {name: 'end',
-             code: 0x17,
-             fields: [
-                 {name:'error', type:'error'}
-             ]
-            };
+var end = {
+    name: 'end',
+    code: 0x17,
+    fields: [
+        {name: 'error', type: 'error'}
+    ]
+};
 
-var close = {name: 'close',
-             code: 0x18,
-             fields: [
-                 {name:'error', type:'error'}
-             ]
-            };
+var close = {
+    name: 'close',
+    code: 0x18,
+    fields: [
+        {name: 'error', type: 'error'}
+    ]
+};
 
 define_frame(frames.TYPE_AMQP, open);
 define_frame(frames.TYPE_AMQP, begin);
@@ -15009,33 +15036,48 @@ define_frame(frames.TYPE_AMQP, detach);
 define_frame(frames.TYPE_AMQP, end);
 define_frame(frames.TYPE_AMQP, close);
 
-var sasl_mechanisms = {name:'sasl_mechanisms', code:0x40,
-                       fields: [
-                           {name:'sasl_server_mechanisms', type:'symbol', multiple:true, mandatory:true}
-                       ]};
+var sasl_mechanisms = {
+    name: 'sasl_mechanisms',
+    code: 0x40,
+    fields: [
+        {name: 'sasl_server_mechanisms', type: 'symbol', multiple: true, mandatory: true}
+    ]
+};
 
-var sasl_init = {name:'sasl_init', code:0x41,
-                 fields: [
-                     {name:'mechanism', type:'symbol', mandatory:true},
-                     {name:'initial_response', type:'binary'},
-                     {name:'hostname', type:'string'}
-                 ]};
+var sasl_init = {
+    name: 'sasl_init',
+    code: 0x41,
+    fields: [
+        {name: 'mechanism', type: 'symbol', mandatory: true},
+        {name: 'initial_response', type: 'binary'},
+        {name: 'hostname', type: 'string'}
+    ]
+};
 
-var sasl_challenge = {name:'sasl_challenge', code:0x42,
-                      fields: [
-                          {name:'challenge', type:'binary', mandatory:true}
-                      ]};
+var sasl_challenge = {
+    name: 'sasl_challenge',
+    code: 0x42,
+    fields: [
+        {name: 'challenge', type: 'binary', mandatory: true}
+    ]
+};
 
-var sasl_response = {name:'sasl_response', code:0x43,
-                     fields: [
-                         {name:'response', type:'binary', mandatory:true}
-                     ]};
+var sasl_response = {
+    name: 'sasl_response',
+    code: 0x43,
+    fields: [
+        {name: 'response', type: 'binary', mandatory: true}
+    ]
+};
 
-var sasl_outcome = {name:'sasl_outcome', code:0x44,
-                    fields: [
-                        {name:'code', type:'ubyte', mandatory:true},
-                        {name:'additional_data', type:'binary'}
-                    ]};
+var sasl_outcome = {
+    name: 'sasl_outcome',
+    code: 0x44,
+    fields: [
+        {name: 'code', type: 'ubyte', mandatory: true},
+        {name: 'additional_data', type: 'binary'}
+    ]
+};
 
 define_frame(frames.TYPE_SASL, sasl_mechanisms);
 define_frame(frames.TYPE_SASL, sasl_init);
@@ -15215,14 +15257,16 @@ function is_internal(name) {
 }
 
 
-var aliases = ['snd_settle_mode',
-               'rcv_settle_mode',
-               'source',
-               'target',
-               'max_message_size',
-               'offered_capabilities',
-               'desired_capabilities',
-               'properties'];
+var aliases = [
+    'snd_settle_mode',
+    'rcv_settle_mode',
+    'source',
+    'target',
+    'max_message_size',
+    'offered_capabilities',
+    'desired_capabilities',
+    'properties'
+];
 
 function remote_property_shortcut(name) {
     return function() { return this.remote.attach ? this.remote.attach[name] : undefined; };
@@ -15343,8 +15387,9 @@ Sender.prototype.on_transfer = function () {
     throw Error('got transfer on sending link');
 };
 
-Sender.prototype.send = function (msg, tag) {
-    var delivery = this.session.send(this, tag ? tag : this.next_tag(), message.encode(msg), 0);
+Sender.prototype.send = function (msg, tag, format) {
+    var payload = format === undefined ? message.encode(msg) : msg;
+    var delivery = this.session.send(this, tag ? tag : this.next_tag(), payload, format);
     if (this.local.attach.snd_settle_mode === 1) {
         delivery.settled = true;
     }
@@ -15495,49 +15540,65 @@ function define_map_section(def) {
     define_section(descriptor, unwrap, wrap);
 }
 
-function Section(typecode, content) {
+function Section(typecode, content, multiple) {
     this.typecode = typecode;
     this.content = content;
+    this.multiple = multiple;
 }
 
-Section.prototype.described = function () {
-    return types.described(types.wrap_ulong(this.typecode), types.wrap(this.content));
+Section.prototype.described = function (item) {
+    return types.described(types.wrap_ulong(this.typecode), types.wrap(item || this.content));
 };
 
-define_composite_section({name:'header',
-                          code:0x70,
-                          fields:[
-                              {name:'durable', type:'boolean', default_value:false},
-                              {name:'priority', type:'ubyte', default_value:4},
-                              {name:'ttl', type:'uint'},
-                              {name:'first_acquirer', type:'boolean', default_value:false},
-                              {name:'delivery_count', type:'uint', default_value:0}
-                          ]
-                         });
+define_composite_section({
+    name:'header',
+    code:0x70,
+    fields:[
+        {name:'durable', type:'boolean', default_value:false},
+        {name:'priority', type:'ubyte', default_value:4},
+        {name:'ttl', type:'uint'},
+        {name:'first_acquirer', type:'boolean', default_value:false},
+        {name:'delivery_count', type:'uint', default_value:0}
+    ]
+});
 define_map_section({name:'delivery_annotations', code:0x71});
 define_map_section({name:'message_annotations', code:0x72});
-define_composite_section({name:'properties',
-                          code:0x73,
-                          fields:[
-                              {name:'message_id', type:'message_id'},
-                              {name:'user_id', type:'binary'},
-                              {name:'to', type:'string'},
-                              {name:'subject', type:'string'},
-                              {name:'reply_to', type:'string'},
-                              {name:'correlation_id', type:'message_id'},
-                              {name:'content_type', type:'symbol'},
-                              {name:'content_encoding', type:'symbol'},
-                              {name:'absolute_expiry_time', type:'timestamp'},
-                              {name:'creation_time', type:'timestamp'},
-                              {name:'group_id', type:'string'},
-                              {name:'group_sequence', type:'uint'},
-                              {name:'reply_to_group_id', type:'string'}
-                          ]
-                         });
+define_composite_section({
+    name:'properties',
+    code:0x73,
+    fields:[
+        {name:'message_id', type:'message_id'},
+        {name:'user_id', type:'binary'},
+        {name:'to', type:'string'},
+        {name:'subject', type:'string'},
+        {name:'reply_to', type:'string'},
+        {name:'correlation_id', type:'message_id'},
+        {name:'content_type', type:'symbol'},
+        {name:'content_encoding', type:'symbol'},
+        {name:'absolute_expiry_time', type:'timestamp'},
+        {name:'creation_time', type:'timestamp'},
+        {name:'group_id', type:'string'},
+        {name:'group_sequence', type:'uint'},
+        {name:'reply_to_group_id', type:'string'}
+    ]
+});
 define_map_section({name:'application_properties', code:0x74});
 
-define_section({numeric:0x75, symbolic:'amqp:data:binary'}, function (msg, section) { msg.body = new Section(0x75, types.unwrap(section)); });
-define_section({numeric:0x76, symbolic:'amqp:amqp-sequence:list'}, function (msg, section) { msg.body = new Section(0x76, types.unwrap(section)); });
+function unwrap_body_section (msg, section, typecode) {
+    if (msg.body === undefined) {
+        msg.body = new Section(typecode, types.unwrap(section));
+    } else if (msg.body.constructor === Section && msg.body.typecode === typecode) {
+        if (msg.body.multiple) {
+            msg.body.content.push(types.unwrap(section));
+        } else {
+            msg.body.multiple = true;
+            msg.body.content = [msg.body.content, types.unwrap(section)];
+        }
+    }
+}
+
+define_section({numeric:0x75, symbolic:'amqp:data:binary'}, function (msg, section) { unwrap_body_section(msg, section, 0x75); });
+define_section({numeric:0x76, symbolic:'amqp:amqp-sequence:list'}, function (msg, section) { unwrap_body_section(msg, section, 0x76); });
 define_section({numeric:0x77, symbolic:'amqp:value:*'}, function (msg, section) { msg.body = types.unwrap(section); });
 
 define_map_section({name:'footer', code:0x78});
@@ -15545,7 +15606,13 @@ define_map_section({name:'footer', code:0x78});
 
 function wrap_body (sections, msg) {
     if (msg.body && msg.body.constructor === Section) {
-        sections.push(msg.body.described());
+        if (msg.body.multiple) {
+            msg.body.content.forEach(function (s) {
+                sections.push(msg.body.described(s));
+            });
+        } else {
+            sections.push(msg.body.described());
+        }
     } else {
         sections.push(types.described(types.wrap_ulong(0x77), types.wrap(msg.body)));
     }
@@ -15559,6 +15626,14 @@ message.data_section = function (data) {
 
 message.sequence_section = function (list) {
     return new Section(0x76, list);
+};
+
+message.data_sections = function (data_elements) {
+    return new Section(0x75, data_elements, true);
+};
+
+message.sequence_sections = function (lists) {
+    return new Section(0x76, lists, true);
 };
 
 function copy(src, tgt) {
@@ -15665,15 +15740,18 @@ message.are_outcomes_equivalent = function(a, b) {
     else return a.descriptor.value === b.descriptor.value && a.descriptor.value === 0x24;//only batch accepted
 };
 
-define_outcome({name:'received', code:0x23,
-                fields:[
-                    {name:'section_number', type:'uint', mandatory:true},
-                    {name:'section_offset', type:'ulong', mandatory:true}
-                ]});
+define_outcome({
+    name:'received',
+    code:0x23,
+    fields:[
+        {name:'section_number', type:'uint', mandatory:true},
+        {name:'section_offset', type:'ulong', mandatory:true}
+    ]});
 define_outcome({name:'accepted', code:0x24, fields:[]});
 define_outcome({name:'rejected', code:0x25, fields:[{name:'error', type:'error'}]});
 define_outcome({name:'released', code:0x26, fields:[]});
-define_outcome({name:'modified',
+define_outcome({
+    name:'modified',
     code:0x27,
     fields:[
         {name:'delivery_failed', type:'boolean'},
@@ -16055,6 +16133,31 @@ ExternalClient.prototype.step = function() {
     return '';
 };
 
+var XOAuth2Client = function(username, token) {
+    this.username = username;
+    this.token = token;
+};
+
+XOAuth2Client.prototype.start = function() {
+    var response = new Buffer(this.username.length + this.token.length + 5 + 12 + 3);
+    var count = 0;
+    response.write('user=', count);
+    count += 5;
+    response.write(this.username, count);
+    count += this.username.length;
+    response.writeUInt8(1, count);
+    count += 1;
+    response.write('auth=Bearer ', count);
+    count += 12;
+    response.write(this.token, count);
+    count += this.token.length;
+    response.writeUInt8(1, count);
+    count += 1;
+    response.writeUInt8(1, count);
+    count += 1;
+    return response;
+};
+
 /**
  * The mechanisms argument is a map of mechanism names to factory
  * functions for objects that implement that mechanism.
@@ -16242,6 +16345,15 @@ var default_client_mechanisms = {
     },
     enable_external: function () {
         this['EXTERNAL'] = function() { return new ExternalClient(); };
+    },
+    enable_xoauth2: function (username, token) {
+        if (username && token) {
+            this['XOAUTH2'] = function() { return new XOAuth2Client(username, token); };
+        } else if (token === undefined) {
+            throw Error('token must be specified');
+        } else if (username === undefined) {
+            throw Error('username must be specified');
+        }
     }
 };
 
@@ -16409,16 +16521,18 @@ Outgoing.prototype.send = function (sender, tag, data, format) {
     } else {
         fragments.push(data);
     }
-    var d = {'id':this.next_delivery_id++,
-             'tag':tag,
-             'link':sender,
-             'data': fragments,
-             'format':format ? format : 0,
-             'sent': false,
-             'settled': false,
-             'state': undefined,
-             'remote_settled': false,
-             'remote_state': undefined};
+    var d = {
+        'id':this.next_delivery_id++,
+        'tag':tag,
+        'link':sender,
+        'data': fragments,
+        'format':format ? format : 0,
+        'sent': false,
+        'settled': false,
+        'state': undefined,
+        'remote_settled': false,
+        'remote_state': undefined
+    };
     var self = this;
     d.update = function (settled, state) {
         self.update(d, settled, state);
@@ -16496,7 +16610,7 @@ Outgoing.prototype.process = function() {
                     this.next_pending_delivery++;
                 } else {
                     log.flow('Incoming window of peer preventing sending further transfers: remote_window=%d, remote_next_transfer_id=%d, next_transfer_id=%d',
-                             this.remote_window, this.remote_next_transfer_id, this.next_transfer_id);
+                        this.remote_window, this.remote_next_transfer_id, this.next_transfer_id);
                     break;
                 }
             } else {
@@ -16568,12 +16682,13 @@ Incoming.prototype.on_transfer = function(frame, receiver) {
             data = Buffer.concat([current.data, frame.payload], current.data.length + frame.payload.length);
         } else if (this.next_delivery_id === frame.performative.delivery_id) {
             current = {'id':frame.performative.delivery_id,
-                       'tag':frame.performative.delivery_tag,
-                       'link':receiver,
-                       'settled': false,
-                       'state': undefined,
-                       'remote_settled': frame.performative.settled === undefined ? false : frame.performative.settled,
-                       'remote_state': frame.performative.state};
+                'tag':frame.performative.delivery_tag,
+                'format':frame.performative.message_format,
+                'link':receiver,
+                'settled': false,
+                'state': undefined,
+                'remote_settled': frame.performative.settled === undefined ? false : frame.performative.settled,
+                'remote_state': frame.performative.state};
             var self = this;
             current.update = function (settled, state) {
                 var settled_ = settled;
@@ -16606,7 +16721,8 @@ Incoming.prototype.on_transfer = function(frame, receiver) {
             receiver.credit--;
             receiver.delivery_count++;
             this.next_delivery_id++;
-            receiver.dispatch('message', receiver._context({'message':message.decode(data), 'delivery':current}));
+            var msgctxt = current.format === 0 ? {'message':message.decode(data), 'delivery':current} : {'message':data, 'delivery':current, 'format':current.format};
+            receiver.dispatch('message', receiver._context(msgctxt));
         }
     }
 };
@@ -16694,11 +16810,22 @@ Session.prototype.create_receiver = function (name, opts) {
     return this.create_link(name, link.Receiver, opts);
 };
 
-function attach(factory, args, remote_terminus) {
-    var opts = args ? args : {};
+function merge(defaults, specific) {
+    for (var f in specific) {
+        if (f === 'properties' && defaults.properties) {
+            merge(defaults.properties, specific.properties);
+        } else {
+            defaults[f] = specific[f];
+        }
+    }
+}
+
+function attach(factory, args, remote_terminus, default_args) {
+    var opts = Object.create(default_args || {});
     if (typeof args === 'string') {
-        opts = {};
         opts[remote_terminus] = args;
+    } else if (args) {
+        merge(opts, args);
     }
     if (!opts.name) opts.name = util.generate_uuid();
     var l = factory(opts.name, opts);
@@ -16726,12 +16853,12 @@ Session.prototype.get_option = function (name, default_value) {
 };
 
 Session.prototype.attach_sender = function (args) {
-    return attach(this.create_sender.bind(this), args, 'target');
+    return attach(this.create_sender.bind(this), args, 'target', this.get_option('sender_options', {}));
 };
 Session.prototype.open_sender = Session.prototype.attach_sender;//alias
 
 Session.prototype.attach_receiver = function (args) {
-    return attach(this.create_receiver.bind(this), args, 'source');
+    return attach(this.create_receiver.bind(this), args, 'source', this.get_option('receiver_options', {}));
 };
 Session.prototype.open_receiver = Session.prototype.attach_receiver;//alias
 
@@ -16824,10 +16951,10 @@ Session.prototype.send = function (sender, tag, data, format) {
 
 Session.prototype._write_flow = function (link) {
     var fields = {'next_incoming_id':this.incoming.next_transfer_id,
-                  'incoming_window':this.incoming.window,
-                  'next_outgoing_id':this.outgoing.next_transfer_id,
-                  'outgoing_window':this.outgoing.window
-                 };
+        'incoming_window':this.incoming.window,
+        'next_outgoing_id':this.outgoing.next_transfer_id,
+        'outgoing_window':this.outgoing.window
+    };
     this.incoming.max_transfer_id = fields.next_incoming_id + fields.incoming_window;
     if (link) {
         if (link._get_drain()) fields.drain = true;
@@ -16968,37 +17095,37 @@ terminus.unwrap = function(field) {
     return null;
 };
 
-define_terminus(
-    {name:'source',
-     code:0x28,
-     fields: [
-         {name:'address', type:'string'},
-         {name:'durable', type:'uint', default_value:0},
-         {name:'expiry_policy', type:'symbol', default_value:'session-end'},
-         {name:'timeout', type:'uint', default_value:0},
-         {name:'dynamic', type:'boolean', default_value:false},
-         {name:'dynamic_node_properties', type:'symbolic_map'},
-         {name:'distribution_mode', type:'symbol'},
-         {name:'filter', type:'symbolic_map'},
-         {name:'default_outcome', type:'*'},
-         {name:'outcomes', type:'symbol', multiple:true},
-         {name:'capabilities', type:'symbol', multiple:true}
-     ]
-    });
+define_terminus({
+    name: 'source',
+    code: 0x28,
+    fields: [
+        {name: 'address', type: 'string'},
+        {name: 'durable', type: 'uint', default_value: 0},
+        {name: 'expiry_policy', type: 'symbol', default_value: 'session-end'},
+        {name: 'timeout', type: 'uint', default_value: 0},
+        {name: 'dynamic', type: 'boolean', default_value: false},
+        {name: 'dynamic_node_properties', type: 'symbolic_map'},
+        {name: 'distribution_mode', type: 'symbol'},
+        {name: 'filter', type: 'symbolic_map'},
+        {name: 'default_outcome', type: '*'},
+        {name: 'outcomes', type: 'symbol', multiple: true},
+        {name: 'capabilities', type: 'symbol', multiple: true}
+    ]
+});
 
-define_terminus(
-    {name:'target',
-     code:0x29,
-     fields: [
-         {name:'address', type:'string'},
-         {name:'durable', type:'uint', default_value:0},
-         {name:'expiry_policy', type:'symbol', default_value:'session-end'},
-         {name:'timeout', type:'uint', default_value:0},
-         {name:'dynamic', type:'boolean', default_value:false},
-         {name:'dynamic_node_properties', type:'symbolic_map'},
-         {name:'capabilities', type:'symbol', multiple:true}
-     ]
-    });
+define_terminus({
+    name: 'target',
+    code: 0x29,
+    fields: [
+        {name: 'address', type: 'string'},
+        {name: 'durable', type: 'uint', default_value: 0},
+        {name: 'expiry_policy', type: 'symbol', default_value: 'session-end'},
+        {name: 'timeout', type: 'uint', default_value: 0},
+        {name: 'dynamic', type: 'boolean', default_value: false},
+        {name: 'dynamic_node_properties', type: 'symbolic_map'},
+        {name: 'capabilities', type: 'symbol', multiple: true}
+    ]
+});
 
 module.exports = terminus;
 
@@ -18056,14 +18183,15 @@ function add_type(def) {
     by_descriptor[c.descriptor.symbolic] = c;
 }
 
-add_type({name: 'error',
-             code: 0x1d,
-             fields: [
-                 {name:'condition', type:'symbol', mandatory:true},
-                 {name:'description', type:'string'},
-                 {name:'info', type:'map'}
-             ]
-         });
+add_type({
+    name: 'error',
+    code: 0x1d,
+    fields: [
+        {name:'condition', type:'symbol', mandatory:true},
+        {name:'description', type:'string'},
+        {name:'info', type:'map'}
+    ]
+});
 
 module.exports = types;
 
@@ -18146,7 +18274,7 @@ util.receiver_filter = function (filter) { return util.and(util.is_receiver, fil
 
 util.is_defined = function (field) {
     return field !== undefined && field !== null;
-}
+};
 
 module.exports = util;
 
@@ -26717,16 +26845,16 @@ function rebase (base, dir) {
  */
 'use strict';
 
-var ConnectorClient = require('../lib/connectorClient.js').Connector;
-var ReceiverClient = require('../lib/receiverClient.js').Receiver;
-var SenderClient = require('../lib/senderClient.js').Sender;
+const ConnectorClient = require('../lib/connectorClient.js').Connector;
+const ReceiverClient = require('../lib/receiverClient.js').Receiver;
+const SenderClient = require('../lib/senderClient.js').Sender;
 
 /**
  * @member {object} Options
  * @memberof client
  * Options dict for all client types
  */
-var Options = {
+const Options = {
     //connection opts
     connUrls: undefined,
     reconnect: true,
@@ -26748,10 +26876,10 @@ var Options = {
 
     //base opts
     'broker': function(brokerUrl) {
-        var regex = /(\w+)(:*)(\w*)@/gi;
-        var regexIpv6 = /\[(.*?)\]/gi;
-        var res = regexIpv6.test(brokerUrl) ? brokerUrl.match(regexIpv6)[0].replace(/\[/, '').replace(/\]/,'') : null;
-        var splitAdd;
+        const regex = /(\w+)(:*)(\w*)@/gi;
+        const regexIpv6 = /\[(.*?)\]/gi;
+        const res = regexIpv6.test(brokerUrl) ? brokerUrl.match(regexIpv6)[0].replace(/\[/, '').replace(/\]/,'') : null;
+        let splitAdd;
         if(regex.test(brokerUrl)) {
             splitAdd = brokerUrl.split('@');
             this.username = splitAdd[0].split(':')[0] ? splitAdd[0].split(':')[0] : '';

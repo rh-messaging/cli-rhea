@@ -15,7 +15,7 @@
  */
 'use strict';
 
-var clients = require('cli-rhea');
+const clients = require('cli-rhea');
 clients.Options.objCtrl = 'CESR'; //(C)onnections, s(E)ssions, (S)enders, (R)eceivers
 clients.Options.address = 'simple_connector_queue';
 clients.Options.timeout = 5000; //timeout for running connector in ms
