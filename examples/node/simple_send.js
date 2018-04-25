@@ -15,7 +15,7 @@
  */
 'use strict';
 
-var clients = require('cli-rhea');
+const clients = require('cli-rhea');
 clients.Options.msgContent = 'simple text message';
 clients.Options.msgGroupId = 'group-1';
 clients.Options.address = 'test_queue';

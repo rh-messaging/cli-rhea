@@ -17,6 +17,6 @@
 
 'use strict';
 
-var ConnectorClient = require('../lib/connectorClient.js').Connector;
-var connector = new ConnectorClient();
+const ConnectorClient = require('../lib/connectorClient.js').Connector;
+const connector = new ConnectorClient();
 connector.Run();
