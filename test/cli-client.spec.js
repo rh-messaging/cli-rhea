@@ -161,10 +161,10 @@ describe('Running bin cmd client', function() {
         verify(done, [example('../bin/sender-client.js', ['--broker', '127.0.0.1:8888', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
     });
     it('Connector client stay connected', function(done) {
-        verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 2, '--obj-ctrl', 'CESR'])], 0);
+        verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 1, '--obj-ctrl', 'CESR'])], 0);
     });
     it('Connector client stay connected without sender/receiver', function(done) {
-        verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 5, '--obj-ctrl', 'CESR', '--sender-count', '0', '--receiver-count', '0'])], 0);
+        verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 1, '--obj-ctrl', 'CESR', '--sender-count', '0', '--receiver-count', '0'])], 0);
     });
     it('Send map messages', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content-map-item', 'a~true', '--msg-content-map-item', 'b~false', '--msg-content-map-item', 'c~30'])], 0);
