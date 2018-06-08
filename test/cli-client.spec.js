@@ -191,6 +191,9 @@ describe('Running bin cmd client', function() {
     it('Send message with reconnect enabled over websocket', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--address', 'reconnect_queue', '--count', 5, '--conn-reconnect', '--conn-web-socket', '--conn-reconnect-limit', 10, '--conn-reconnect-interval', '1', '--conn-heartbeat', '1'])], 0);
     });
+    it('Send message with reconnect enabled over websocket with specified protocol', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--address', 'reconnect_queue', '--count', 5, '--conn-reconnect', '--conn-web-socket', '--conn-reconnect-limit', 10, '--conn-reconnect-interval', '1', '--conn-heartbeat', '1', '--conn-ws-protocols', 'binary', 'amqp'])], 0);
+    });
     it('Send with timeout', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--address', 'timeout_queue', '--count', 5, '--timeout', 1])], 0);
     });
