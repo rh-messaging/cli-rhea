@@ -9,7 +9,9 @@
     "coverage": "nyc mocha test/**.spec.js",
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov && codecov",
     "doc": "jsdoc ./lib -d ./doc",
-    "install-drivers": "selenium-standalone install –drivers.firefox.baseURL=http://npm.taobao.org/mirrors/geckodriver –baseURL=http://npm.taobao.org/mirrors/selenium –drivers.chrome.baseURL=http://npm.taobao.org/mirrors/chromedriver –drivers.ie.baseURL=http://npm.taobao.org/mirrors/selenium"
+    "install-drivers": "selenium-standalone install –drivers.firefox.baseURL=http://npm.taobao.org/mirrors/geckodriver –baseURL=http://npm.taobao.org/mirrors/selenium –drivers.chrome.baseURL=http://npm.taobao.org/mirrors/chromedriver –drivers.ie.baseURL=http://npm.taobao.org/mirrors/selenium",
+    "prepare": "npm run lint && npm run tsc",
+    "tsc": "tsc"
   },
   "repository": {
     "type": "git",
@@ -34,6 +36,7 @@
   ],
   "license": "Apache-2.0",
   "main": "./lib/client.js",
+  "types": "./typings/index.d.ts",
   "maintainers": [
     {
       "name": "kornys",
@@ -41,6 +44,7 @@
     }
   ],
   "devDependencies": {
+    "@types/node": "^8.0.37",
     "browserify": "",
     "eslint": "",
     "mocha": "3.5.3",
@@ -48,7 +52,9 @@
     "jsdoc": "",
     "webdriverio": "",
     "selenium-standalone": "",
-    "nyc": ""
+    "nyc": "",
+    "typescript": "^2.8.3",
+    "ts-node": "^6.0.3"
   },
   "author": "David Kornel",
   "homepage": "https://github.com/rh-messaging/cli-rhea/blob/master/README.md"
