@@ -19,4 +19,4 @@
 
 const ReceiverClient = require('../lib/receiverClient.js').Receiver;
 const receiver = new ReceiverClient();
-receiver.Run();
+receiver.run();

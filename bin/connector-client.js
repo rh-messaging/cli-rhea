@@ -19,4 +19,4 @@
 
 const ConnectorClient = require('../lib/connectorClient.js').Connector;
 const connector = new ConnectorClient();
-connector.Run();
+connector.run();
