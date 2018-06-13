@@ -42,17 +42,17 @@ describe('Client import', function() {
     });
     describe('"SenderClient.Run"', function() {
         it('should export a function', function() {
-            expect(client.SenderClient.Run).to.be.a('function');
+            expect(client.SenderClient.run).to.be.a('function');
         });
     });
     describe('"ReceiverClient.Run"', function() {
         it('should export a function', function() {
-            expect(client.ReceiverClient.Run).to.be.a('function');
+            expect(client.ReceiverClient.run).to.be.a('function');
         });
     });
     describe('"ConnectorClient.Run"', function() {
         it('should export a function', function() {
-            expect(client.ConnectorClient.Run).to.be.a('function');
+            expect(client.ConnectorClient.run).to.be.a('function');
         });
     });
     describe('"Using node mode for sending/receiving"', function() {
