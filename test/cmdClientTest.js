@@ -112,7 +112,7 @@ function verify(done, programs, expectCode) {
 }
 
 describe('Running bin cmd client', function() {
-    this.slow(1900);
+    this.slow(1000);
 
     it('Test sender wrong argument', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--foo'])], 1);
