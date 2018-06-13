@@ -183,7 +183,7 @@ describe('Running bin cmd client', function() {
         verify(done, [example('../bin/sender-client.js', ['--address', 'disabled_reconnect_queue', '--count', 1, '--conn-web-socket', true, '--conn-reconnect', false])], 0);
     });
     it('Send message with failover enabled', function(done) {
-        verify(done, [example('../bin/sender-client.js', ['--address', 'falover_queue', '--count', 5, '--conn-urls', '[\"localhost:61616\", \"localhost:5673\"]', '--conn-reconnect-limit', 10])], 0);
+        verify(done, [example('../bin/sender-client.js', ['--address', 'falover_queue', '--count', 5, '--conn-urls', 'localhost:61616,localhost:5673', '--conn-reconnect-limit', 10])], 0);
     });
     it('Send message with reconnect enabled', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--address', 'reconnect_queue', '--count', 5, '--conn-reconnect', true, '--conn-reconnect-limit', 10, '--conn-reconnect-interval', '1'])], 0);
