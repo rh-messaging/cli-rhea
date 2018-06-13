@@ -1,17 +1,15 @@
 {
   "name": "cli-rhea",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Client interface built on amqp/rhea lib",
   "scripts": {
-    "test": "mocha test/**.spec.js",
+    "test": "mocha test/*Test.js",
     "browserify": "browserify --ignore ws -r .:cli-rhea -o ./dist/cli-rhea.js",
     "lint": "eslint ./lib/*.js",
     "coverage": "nyc mocha test/*Test.js",
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov && codecov",
     "doc": "jsdoc ./lib -d ./doc",
-    "install-drivers": "selenium-standalone install –drivers.firefox.baseURL=http://npm.taobao.org/mirrors/geckodriver –baseURL=http://npm.taobao.org/mirrors/selenium –drivers.chrome.baseURL=http://npm.taobao.org/mirrors/chromedriver –drivers.ie.baseURL=http://npm.taobao.org/mirrors/selenium",
-    "prepare": "npm run lint && npm run tsc",
-    "tsc": "tsc"
+    "install-drivers": "selenium-standalone install –drivers.firefox.baseURL=http://npm.taobao.org/mirrors/geckodriver –baseURL=http://npm.taobao.org/mirrors/selenium –drivers.chrome.baseURL=http://npm.taobao.org/mirrors/chromedriver –drivers.ie.baseURL=http://npm.taobao.org/mirrors/selenium"
   },
   "repository": {
     "type": "git",
@@ -44,7 +42,6 @@
     }
   ],
   "devDependencies": {
-    "@types/node": "^8.0.37",
     "browserify": "",
     "eslint": "",
     "mocha": "3.5.3",
@@ -52,9 +49,7 @@
     "jsdoc": "",
     "webdriverio": "",
     "selenium-standalone": "",
-    "nyc": "",
-    "typescript": "^2.8.3",
-    "ts-node": "^6.0.3"
+    "nyc": ""
   },
   "author": "David Kornel",
   "homepage": "https://github.com/rh-messaging/cli-rhea/blob/master/README.md"
