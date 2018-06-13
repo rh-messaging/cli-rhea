@@ -19,4 +19,4 @@
 
 const SenderClient = require('../lib/senderClient.js').Sender;
 const sender = new SenderClient();
-sender.Run();
+sender.run();

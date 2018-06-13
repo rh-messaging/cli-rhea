@@ -112,7 +112,7 @@ function verify(done, programs, expectCode) {
 }
 
 describe('Running bin cmd client', function() {
-    this.slow(600);
+    this.slow(1000);
 
     it('Test sender wrong argument', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--foo'])], 1);
@@ -144,24 +144,30 @@ describe('Running bin cmd client', function() {
     it('Reject rest messages', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 0, '--action', 'reject'])], 0);
     });
-    it('Receive rest messages', function(done) {
+    it('Receive rest messages (drain)', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 0])], 0);
     });
+    it('Send empty messages with reply to', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--count', 1, '--msg-reply-to', 'examples-2'])], 0);
+    });
+    it('Run receiver with reply to func', function(done) {
+        verify(done, [example('../bin/receiver-client.js', ['--count', 1, '--process-reply-to', 'true'])], 0);
+    });
     it('Websocket sent messages', function(done) {
-        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--conn-web-socket'])], 0);
+        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--conn-web-socket', '--link-at-least-once'])], 0);
     });
     it('Websocket receive messages', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--conn-web-socket'])], 0);
     });
     it('Send messages sasl', function(done) {
-        verify(done, [example('../bin/sender-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
+        verify(done, [example('../bin/sender-client.js', ['--broker', 'amqp://admin:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
     });
     it('P2P test', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--recv-listen', '--recv-listen-port', '8888'])], 0);
         verify(done, [example('../bin/sender-client.js', ['--broker', '127.0.0.1:8888', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
     });
     it('Connector client stay connected', function(done) {
-        verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 1, '--obj-ctrl', 'CESR'])], 0);
+        verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 1, '--obj-ctrl', 'CESR', '--sender-count', '10', '--receiver-count', 10])], 0);
     });
     it('Connector client stay connected without sender/receiver', function(done) {
         verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 1, '--obj-ctrl', 'CESR', '--sender-count', '0', '--receiver-count', '0'])], 0);
@@ -183,7 +189,7 @@ describe('Running bin cmd client', function() {
         verify(done, [example('../bin/sender-client.js', ['--address', 'disabled_reconnect_queue', '--count', 1, '--conn-web-socket', true, '--conn-reconnect', false])], 0);
     });
     it('Send message with failover enabled', function(done) {
-        verify(done, [example('../bin/sender-client.js', ['--address', 'falover_queue', '--count', 5, '--conn-urls', '[\"localhost:61616\", \"localhost:5673\"]', '--conn-reconnect-limit', 10])], 0);
+        verify(done, [example('../bin/sender-client.js', ['--address', 'falover_queue', '--count', 5, '--conn-urls', 'localhost:61616,localhost:5673', '--conn-reconnect-limit', 10])], 0);
     });
     it('Send message with reconnect enabled', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--address', 'reconnect_queue', '--count', 5, '--conn-reconnect', true, '--conn-reconnect-limit', 10, '--conn-reconnect-interval', '1'])], 0);
@@ -217,5 +223,8 @@ describe('Running bin cmd client', function() {
     });
     it('Test message logging events', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--address', 'log_queue', '--count', 1, '--msg-content', 'msg no.%d', '--log-lib', 'TRANSPORT_DRV'])], 0);
+    });
+    it('Send with duration', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--count', 5, '--duration', 1])], 0);
     });
 });
