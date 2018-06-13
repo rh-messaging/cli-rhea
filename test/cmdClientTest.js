@@ -154,7 +154,7 @@ describe('Running bin cmd client', function() {
         verify(done, [example('../bin/receiver-client.js', ['--count', 1, '--process-reply-to', 'true'])], 0);
     });
     it('Websocket sent messages', function(done) {
-        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--conn-web-socket', '--link-at-most-once'])], 0);
+        verify(done, [example('../bin/sender-client.js', ['--count', 10, '--msg-content', 'msg no.%d', '--conn-web-socket', '--link-at-least-once'])], 0);
     });
     it('Websocket receive messages', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--conn-web-socket'])], 0);
