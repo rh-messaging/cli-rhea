@@ -67,7 +67,7 @@ describe('Client import', function() {
             cliRhea.Options.msgId = 'message id';
             cliRhea.Options.count = 1;
             cliRhea.Options.logMsgs = 'upstream';
-            cliRhea.SenderClient.Run(client.Options);
+            cliRhea.SenderClient.run(client.Options);
             setTimeout(done, 1500);
         });
         it('Receive by imported client', function(done) {
@@ -77,7 +77,7 @@ describe('Client import', function() {
             cliRhea.Options.logMsgs = 'interop';
             cliRhea.Options.count = 1;
             cliRhea.Options.logStats = 'endpoints';
-            cliRhea.ReceiverClient.Run(client.Options);
+            cliRhea.ReceiverClient.run(client.Options);
             setTimeout(done, 1500);
         });
         it('Reply to', function(done) {
@@ -88,9 +88,9 @@ describe('Client import', function() {
             cliRhea.Options.logStats = undefined;
             cliRhea.Options.count = 2;
             cliRhea.Options.msgReplyTo = 'reply_to_queue';
-            cliRhea.SenderClient.Run(client.Options);
+            cliRhea.SenderClient.run(client.Options);
             cliRhea.Options.processReplyTo = true;
-            cliRhea.ReceiverClient.Run(client.Options);
+            cliRhea.ReceiverClient.run(client.Options);
             setTimeout(done, 1900);
         });
     });
