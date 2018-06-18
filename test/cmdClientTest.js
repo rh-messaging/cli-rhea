@@ -227,8 +227,10 @@ describe('Running bin cmd client', function() {
     it('Send with duration', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--count', 5, '--duration', 1])], 0);
     });
-    it('Message hashed content', function(done) {
+    it('Message hashed content (sender)', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--address', 'hashed_content', '--count', 1, '--msg-content', 'adsaksdhkasdhfkahsdlfahsdlfhalsdfhalksdhflakshdfklahsdlfhalskdf', '--msg-content-hashed', 'true', '--log-msgs', 'interop'])], 0);
+    });
+    it('Message hashed content (receiver)', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 1, '--address', 'hashed_content', '--msg-content-hashed', 'true', '--log-msgs', 'json'])], 0);
     });
 });
