@@ -17,7 +17,6 @@
 
 var assert = require('assert');
 var child_process = require('child_process');
-var assert = require('chai').assert;
 var path = require('path');
 
 function Expectations(done) {

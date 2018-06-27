@@ -45,7 +45,6 @@
     "browserify": "",
     "eslint": "",
     "mocha": "3.5.3",
-    "chai": "",
     "jsdoc": "",
     "webdriverio": "",
     "selenium-standalone": "",
