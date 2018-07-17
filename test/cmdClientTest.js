@@ -162,7 +162,7 @@ describe('Running bin cmd client', function() {
         verify(done, [example('../bin/sender-client.js', ['--broker', 'amqp://admin:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
     });
     it('Send messages sasl (username as email)', function(done) {
-        verify(done, [example('../bin/sender-client.js', ['--broker', 'amqp://admin@pepa.cz:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
+        verify(done, [example('../bin/sender-client.js', ['--broker', 'amqp://admin%40pepa.cz:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
     });
     it('P2P test', function(done) {
         verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--recv-listen', '--recv-listen-port', '8888'])], 0);

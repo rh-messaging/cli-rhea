@@ -42,7 +42,7 @@ opts.address = 'queue_test';
 opts.count = 2;
 opts.msgContent = 'text message';
 
-sender.Run(opts);
+sender.run(opts);
 ```
 
 ### Using in html
@@ -73,7 +73,7 @@ sender.Run(opts);
           opts.msgDurable = true;
           opts.msgPriority = 2;
           opts.msgContent = 'Simple test message';
-          clients.SenderClient.Run(opts);
+          clients.SenderClient.run(opts);
         </script>
       </body>
     </html>
