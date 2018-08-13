@@ -22,7 +22,7 @@
     "cli-rhea-browser-runner": "bin/browser-runner.js"
   },
   "dependencies": {
-    "rhea": "^0.2.12",
+    "rhea": "^0.2.20",
     "string-format-js": "",
     "ws": "^5.0.0",
     "yargs": "7.1.0"
