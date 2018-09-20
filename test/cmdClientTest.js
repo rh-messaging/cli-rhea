@@ -111,7 +111,7 @@ function verify(done, programs, expectCode) {
 }
 
 describe('Running bin cmd client', function() {
-    this.slow(1000);
+    this.slow(2000);
 
     it('Test sender wrong argument', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--foo'])], 1);
@@ -161,9 +161,8 @@ describe('Running bin cmd client', function() {
     it('Send messages sasl', function(done) {
         verify(done, [example('../bin/sender-client.js', ['--broker', 'amqp://admin:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
     });
-    it('P2P test', function(done) {
-        verify(done, [example('../bin/receiver-client.js', ['--count', 10, '--recv-listen', '--recv-listen-port', '8888'])], 0);
-        verify(done, [example('../bin/sender-client.js', ['--broker', '127.0.0.1:8888', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
+    it('Send messages sasl (username as email)', function(done) {
+        verify(done, [example('../bin/sender-client.js', ['--broker', 'amqp://admin%40pepa.cz:admin@127.0.0.1:5672', '--count', 10, '--msg-content', 'msg no.%d'])], 0);
     });
     it('Connector client stay connected', function(done) {
         verify(done, [example('../bin/connector-client.js', ['--broker', 'admin:admin@127.0.0.1:5672', '--count', 5, '--timeout', 1, '--obj-ctrl', 'CESR', '--sender-count', '10', '--receiver-count', 10])], 0);
