@@ -1,6 +1,6 @@
 {
   "name": "cli-rhea",
-  "version": "2.1.10",
+  "version": "2.1.11",
   "description": "Client interface built on amqp/rhea lib",
   "scripts": {
     "test": "mocha test/*Test.js",
@@ -49,7 +49,7 @@
     "jsdoc": "",
     "webdriverio": "",
     "selenium-standalone": "",
-    "nyc": ""
+    "nyc": "12.0.1"
   },
   "author": "David Kornel",
   "homepage": "https://github.com/rh-messaging/cli-rhea/blob/master/README.md"
