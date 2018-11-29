@@ -79,23 +79,6 @@ sender.run(opts);
     </html>
     ```
 
-### Using web browser executor
-
-1. Install google chrome
-1. Install dependencies
-
-    ```sh
-    cd <path-of-cli-rhea-npm-package>
-    npm install
-    npm run-script browserify
-    ```
-1. Run web browser executor
-
-    ```sh
-    cli-rhea-browser-runner --client-type sender --broker "username:password@localhost:5672" --address "queue_test" --count 2 --msg-content "text message" --log-msgs dict
-    cli-rhea-browser-runner --client-type receiver --broker "username:password@localhost:5672" --address "queue_test" --count 2 --log-msgs dict
-    ```
-
 ## Docker
 
 To build image with CENTOS7 and rhea-nodejs-client use Dockerfile in project lib:

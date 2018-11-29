@@ -1,6 +1,6 @@
 {
   "name": "cli-rhea",
-  "version": "2.1.11",
+  "version": "2.2.0",
   "description": "Client interface built on amqp/rhea lib",
   "scripts": {
     "test": "mocha test/*Test.js",
@@ -18,13 +18,12 @@
   "bin": {
     "cli-rhea-sender": "bin/sender-client.js",
     "cli-rhea-receiver": "bin/receiver-client.js",
-    "cli-rhea-connector": "bin/connector-client.js",
-    "cli-rhea-browser-runner": "bin/browser-runner.js"
+    "cli-rhea-connector": "bin/connector-client.js"
   },
   "dependencies": {
     "rhea": "^0.3.0",
     "string-format-js": "",
-    "ws": "^5.0.0",
+    "ws": "^6.0.0",
     "yargs": "7.1.0"
   },
   "keywords": [
@@ -43,12 +42,10 @@
   ],
   "devDependencies": {
     "browserify": "",
-    "eslint": "",
-    "mocha": "3.5.3",
+    "eslint": "^4.19.1",
+    "mocha": "^3.0.0",
     "chai": "",
     "jsdoc": "",
-    "webdriverio": "",
-    "selenium-standalone": "",
     "nyc": "12.0.1"
   },
   "author": "David Kornel",
