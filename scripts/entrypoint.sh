@@ -29,9 +29,6 @@ if [ ! "$(ls -A /var/lib/amq7/etc)" ]; then
 	cd $WORKDIR
 fi
 
-# Log to tty to enable docker logs container-name
-sed -ie "s/logger.handlers=.*/logger.handlers=CONSOLE/g" ../etc/logging.properties
-
 # Update min memory if the argument is passed
 if [[ "$ARTEMIS_MIN_MEMORY" ]]; then
   sed -ie "s/-Xms512M/-Xms$ARTEMIS_MIN_MEMORY/g" ../etc/artemis.profile
