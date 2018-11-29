@@ -6,8 +6,6 @@
     "test": "mocha test/*Test.js",
     "browserify": "browserify --ignore ws -r .:cli-rhea -o ./dist/cli-rhea.js",
     "lint": "eslint ./lib/*.js",
-    "coverage": "nyc mocha test/*Test.js",
-    "report-coverage": "nyc report --reporter=lcov > coverage.lcov && codecov",
     "doc": "jsdoc ./lib -d ./doc"
   },
   "repository": {
@@ -44,8 +42,7 @@
     "eslint": "^4.19.1",
     "mocha": "^3.0.0",
     "chai": "",
-    "jsdoc": "",
-    "nyc": "12.0.1"
+    "jsdoc": ""
   },
   "author": "David Kornel",
   "homepage": "https://github.com/rh-messaging/cli-rhea/blob/master/README.md"
