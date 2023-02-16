@@ -1,0 +1,62 @@
+name: 'build'
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  npm-test:
+    runs-on: "ubuntu-latest"
+
+#    # this does not work, we can't customize the CMD
+#    #  https://docs.github.com/en/actions/using-containerized-services/about-service-containers
+#    services:
+#      artemis:
+#        image: enkeys/alpine-openjdk-amq7-snapshot
+#        options: --entrypoint='ash -c "/mnt/entrypoint.sh amq7-server"'
+#        ports:
+#          - 5672:5672
+#          - 61616:61616
+#        volumes:
+#          - ${{github.workspace}}/scripts:/mnt
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.x
+
+      - name: Docker
+        run: |
+          docker pull enkeys/alpine-openjdk-amq7-snapshot
+          docker create --name artemis -v`pwd`/scripts:/mnt -p 5672:5672 -p 61616:61616 --entrypoint ash enkeys/alpine-openjdk-amq7-snapshot /mnt/entrypoint.sh amq7-server
+          docker start artemis
+
+      - name: Install
+        run: npm install
+
+      - name: sleep
+        run: |
+          sleep 10
+
+      - name: browserify
+        run: |
+          npm run-script browserify
+
+      - name: doc
+        run: |
+          npm run-script doc
+
+      - name: test
+        run: |
+          npm run-script test
+
+      - name: logs
+        if: ${{ always() }}
+        run: |
+          docker logs artemis
