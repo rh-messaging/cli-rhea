@@ -1,7 +1,7 @@
 {
-  "name": "cli-rhea",
-  "version": "2.6.3",
-  "description": "Client interface built on amqp/rhea lib",
+  "name": "cli-rhea3",
+  "version": "3.0.0",
+  "description": "Client interface built on amqp/rhea lib 3.x",
   "scripts": {
     "test": "mocha test/*Test.js",
     "browserify": "browserify --ignore ws -r .:cli-rhea -o ./dist/cli-rhea.js",
@@ -18,10 +18,10 @@
     "cli-rhea-connector": "bin/connector-client.js"
   },
   "dependencies": {
-    "rhea": "^1.0.19",
-    "string-format-js": "",
-    "ws": "^5.0.0",
-    "yargs": "7.1.0"
+    "rhea": "^3.0.0",
+    "string-format-js": "^1.0.0",
+    "ws": "^8.12.1",
+    "yargs": "^17.7.0"
   },
   "keywords": [
     "rhea",
