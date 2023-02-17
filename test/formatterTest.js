@@ -60,7 +60,7 @@ describe('Formatter tests', function() {
     });
     describe('"Format dict"', function() {
         it('should be same string', function() {
-            expect(Formatter.formatAsDict(message)).is.equal('{"durable":True,"priority":6,"ttl":2000,"first_acquirer":None,"delivery_count":0,"id":"Msg id","user_id":"User ID","to":"queue","subject":"test subject","reply_to":"reply_to_queue","correlation_id":"correlation id","content_type":"string","content_encoding":None,"absolute-expiry-time":None,"creation_time":None,"group-id":"group ID","group-sequence":"ABCD","reply-to-group-id":"group ID","properties":{"test_property":1,"test_property_2":"test string value"},"content":"test string","message-annotations":None}');
+            expect(Formatter.formatAsDict(message)).is.equal('{"durable":True,"priority":6,"ttl":2000,"first_acquirer":None,"delivery_count":0,"id":"Msg id","user-id":"User ID","to":"queue","subject":"test subject","reply-to":"reply_to_queue","correlation-id":"correlation id","content-type":"string","content-encoding":None,"absolute-expiry-time":None,"creation-time":None,"group-id":"group ID","group-sequence":"ABCD","reply-to-group-id":"group ID","properties":{"test_property":1,"test_property_2":"test string value"},"content":"test string","message-annotations":None}');
         });
     });
 });
