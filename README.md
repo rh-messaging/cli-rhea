@@ -15,7 +15,7 @@ Install to global env, if you would like use client as cmd program.
 npm install cli-rhea -g
 ```
 
-For standart using install to local env.
+For standard using install to local env.
 
 ```sh
 npm install cli-rhea
