@@ -39,7 +39,7 @@
   ],
   "devDependencies": {
     "browserify": "",
-    "eslint": "^4.19.1",
+    "eslint": "^8.41.0",
     "mocha": "^3.0.0",
     "chai": "",
     "jsdoc": ""
