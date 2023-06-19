@@ -1,10 +1,9 @@
-FROM centos:7
+FROM centos:stream9
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-RUN yum -y update
 
 #install nodejs
-RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
-RUN yum -y install nodejs
+# https://nodejs.org/en/download/package-manager#centos-fedora-and-red-hat-enterprise-linux
+RUN dnf module install -y nodejs:18/common && dnf clean all
 
 #install lib
 RUN npm install cli-rhea -g
