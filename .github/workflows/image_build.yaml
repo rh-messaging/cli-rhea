@@ -27,7 +27,7 @@ jobs:
           echo "ref_name=${ref_name}" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Build Image
         id: build-image
